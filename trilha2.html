@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trilha 2 — Usando os Robôs Phoenix · Phoenix Comp Educa</title>
+  <style>
+    :root {
+      --bg: #080600;
+      --surface: #110e00;
+      --surface2: #0d0a00;
+      --orange: #ff6a00;
+      --gold: #ffaa00;
+      --text: #f0ece0;
+      --muted: #7a6a50;
+      --border: rgba(255, 106, 0, 0.18);
+      --sidebar-w: 250px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      line-height: 1.7;
+      display: flex;
+    }
+
+    aside {
+      width: var(--sidebar-w);
+      min-height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      position: fixed;
+      top: 0; left: 0;
+      display: flex;
+      flex-direction: column;
+      z-index: 50;
+      overflow-y: auto;
+    }
+
+    .sidebar-top {
+      padding: 1.4rem 1.2rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .back-link {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--muted);
+      font-size: 0.78rem;
+      text-decoration: none;
+      margin-bottom: 1rem;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover { color: var(--orange); }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .sidebar-logo img {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      border: 1.5px solid var(--orange);
+      object-fit: cover;
+    }
+
+    .sidebar-logo span {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--orange);
+    }
+
+    .sidebar-trilha-label {
+      padding: 1rem 1.2rem 0.5rem;
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .mod-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      padding: 0.75rem 1.2rem;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-family: inherit;
+      text-align: left;
+      width: 100%;
+      transition: all 0.2s;
+      border-left: 2px solid transparent;
+    }
+
+    .mod-btn:hover { color: var(--text); background: rgba(255,106,0,0.05); }
+    .mod-btn.active { color: var(--orange); border-left-color: var(--orange); background: rgba(255,106,0,0.07); }
+
+    .mod-btn .mod-num {
+      font-size: 0.65rem;
+      font-family: monospace;
+      color: var(--orange);
+      opacity: 0.6;
+      min-width: 20px;
+    }
+
+    .mod-btn.active .mod-num { opacity: 1; }
+
+    .mod-check { margin-left: auto; color: #4caf50; font-size: 0.75rem; display: none; }
+    .mod-btn.done .mod-check { display: inline; }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 1.2rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .prog-label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .prog-track { height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; overflow: hidden; }
+    .prog-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--orange), var(--gold));
+      border-radius: 2px;
+      transition: width 0.5s ease;
+      width: 0%;
+    }
+
+    main { margin-left: var(--sidebar-w); flex: 1; min-height: 100vh; }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2.5rem;
+      border-bottom: 1px solid var(--border);
+      background: rgba(8,6,0,0.9);
+      position: sticky;
+      top: 0; z-index: 40;
+      backdrop-filter: blur(8px);
+    }
+
+    .topbar-title { font-size: 0.82rem; color: var(--muted); }
+    .topbar-title strong { color: var(--orange); }
+
+    .mod-section { display: none; padding: 2.5rem 3rem 4rem; max-width: 820px; }
+    .mod-section.active { display: block; }
+
+    .mod-header {
+      margin-bottom: 2.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .mod-header .num {
+      color: var(--orange);
+      font-size: 0.7rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 0.6rem;
+    }
+
+    .mod-header h1 { font-size: 1.9rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2; }
+    .mod-header p { color: var(--muted); margin-top: 0.6rem; font-size: 0.9rem; }
+
+    .content h2 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text);
+      margin: 2rem 0 0.8rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .content h3 { font-size: 0.95rem; font-weight: 600; color: var(--gold); margin: 1.4rem 0 0.5rem; }
+    .content p { color: rgba(240,236,224,0.85); font-size: 0.9rem; margin-bottom: 0.9rem; line-height: 1.8; }
+    .content ul, .content ol { padding-left: 1.4rem; margin-bottom: 0.9rem; color: rgba(240,236,224,0.85); font-size: 0.9rem; }
+    .content li { margin-bottom: 0.3rem; }
+
+    .content code {
+      font-family: 'Courier New', monospace;
+      background: rgba(255,106,0,0.1);
+      color: var(--orange);
+      padding: 0.1em 0.4em;
+      border-radius: 3px;
+      font-size: 0.85em;
+    }
+
+    pre {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--orange);
+      padding: 1.2rem 1.4rem;
+      border-radius: 6px;
+      overflow-x: auto;
+      margin: 1rem 0 1.2rem;
+      font-family: 'Courier New', monospace;
+      font-size: 0.83rem;
+      line-height: 1.65;
+      color: #e0d8c0;
+    }
+
+    pre .c  { color: #5a6a4a; font-style: italic; }
+    pre .kw { color: var(--orange); }
+    pre .str { color: #8ec476; }
+    pre .num { color: #b5cea8; }
+
+    .cmd-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      font-size: 0.84rem;
+    }
+
+    .cmd-table th {
+      text-align: left;
+      padding: 0.6rem 0.9rem;
+      background: rgba(255,106,0,0.08);
+      color: var(--orange);
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .cmd-table td {
+      padding: 0.55rem 0.9rem;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      vertical-align: top;
+    }
+
+    .cmd-table td:first-child {
+      font-family: 'Courier New', monospace;
+      color: var(--gold);
+      white-space: nowrap;
+      font-size: 0.82rem;
+    }
+
+    .cmd-table td:last-child { color: var(--muted); font-size: 0.83rem; }
+
+    .callout {
+      border: 1px solid rgba(255, 170, 0, 0.25);
+      background: rgba(255, 170, 0, 0.05);
+      border-radius: 8px;
+      padding: 1rem 1.2rem;
+      margin: 1.2rem 0;
+      font-size: 0.86rem;
+      color: rgba(240,236,224,0.8);
+    }
+
+    .callout strong { color: var(--gold); }
+
+    .flow-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .flow-num {
+      min-width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: rgba(255,106,0,0.15);
+      border: 1px solid rgba(255,106,0,0.4);
+      color: var(--orange);
+      font-size: 0.72rem;
+      font-family: monospace;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .flow-text { font-size: 0.88rem; color: rgba(240,236,224,0.85); }
+    .flow-text code { font-family: monospace; color: var(--gold); background: rgba(255,170,0,0.08); padding: 0.1em 0.35em; border-radius: 3px; font-size: 0.85em; }
+
+    /* Quiz */
+    .quiz-section {
+      margin-top: 3rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .quiz-title {
+      font-size: 0.7rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--orange);
+      margin-bottom: 1.5rem;
+    }
+
+    .question {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.4rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .q-text { font-size: 0.9rem; font-weight: 600; margin-bottom: 1rem; line-height: 1.5; }
+    .q-num { color: var(--orange); margin-right: 0.4rem; font-family: monospace; }
+    .q-opts { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem; }
+
+    .q-opt {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      padding: 0.65rem 0.9rem;
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 7px;
+      cursor: pointer;
+      font-size: 0.86rem;
+      transition: all 0.15s;
+      background: rgba(255,255,255,0.02);
+    }
+
+    .q-opt:hover { border-color: rgba(255,106,0,0.35); background: rgba(255,106,0,0.04); }
+    .q-opt input { display: none; }
+
+    .opt-letter {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px; height: 22px;
+      border-radius: 5px;
+      background: rgba(255,255,255,0.06);
+      font-size: 0.72rem;
+      font-family: monospace;
+      font-weight: 700;
+      color: var(--muted);
+      flex-shrink: 0;
+      transition: all 0.15s;
+    }
+
+    .q-opt.selected .opt-letter { background: var(--orange); color: #000; }
+    .q-opt.correct { border-color: #4caf50; background: rgba(76,175,80,0.07); }
+    .q-opt.correct .opt-letter { background: #4caf50; color: #000; }
+    .q-opt.wrong   { border-color: #f44336; background: rgba(244,67,54,0.07); }
+    .q-opt.wrong   .opt-letter { background: #f44336; color: #fff; }
+
+    .btn-verify {
+      background: var(--orange); color: #000;
+      border: none;
+      padding: 0.5rem 1.2rem;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: opacity 0.2s;
+    }
+
+    .btn-verify:hover { opacity: 0.85; }
+    .btn-verify:disabled { opacity: 0.3; cursor: default; }
+
+    .q-feedback {
+      margin-top: 0.8rem;
+      font-size: 0.83rem;
+      padding: 0.7rem 1rem;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      display: none;
+    }
+
+    .fb-result { font-weight: 700; margin-right: 0.5rem; }
+    .fb-explain { color: var(--muted); }
+
+    .module-complete {
+      display: none;
+      margin-top: 1.5rem;
+      padding: 1.2rem 1.5rem;
+      border: 1px solid #4caf50;
+      border-radius: 10px;
+      background: rgba(76,175,80,0.07);
+      color: #a5d6a7;
+      font-size: 0.88rem;
+    }
+
+    .module-complete strong { color: #4caf50; }
+
+    .nav-btns {
+      display: flex; gap: 1rem;
+      margin-top: 2.5rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .btn-nav {
+      padding: 0.6rem 1.4rem;
+      border-radius: 7px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+    }
+
+    .btn-nav:hover:not(:disabled) { border-color: var(--orange); color: var(--orange); }
+    .btn-nav:disabled { opacity: 0.3; cursor: default; }
+    .btn-nav.primary { background: var(--orange); color: #000; border-color: var(--orange); }
+    .btn-nav.primary:hover { opacity: 0.85; }
+
+    .hamburger {
+      display: none;
+      position: fixed;
+      top: 12px; left: 12px;
+      z-index: 200;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 8px 10px;
+      cursor: pointer;
+      color: var(--orange);
+      font-size: 1.1rem;
+    }
+
+    @media (max-width: 700px) {
+      aside { transform: translateX(-100%); transition: transform 0.3s; }
+      aside.open { transform: translateX(0); }
+      main { margin-left: 0; }
+      .hamburger { display: block; }
+      .mod-section { padding: 2rem 1.2rem 3rem; }
+      .topbar { padding: 1rem 1.2rem 1rem 3.5rem; }
+      .cmd-table { font-size: 0.78rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <button class="hamburger" onclick="toggleSidebar()">☰</button>
+
+  <aside id="sidebar">
+    <div class="sidebar-top">
+      <a class="back-link" href="index.html">← Início</a>
+      <div class="sidebar-logo">
+        <img src="phoenix.jpg" alt="Phoenix">
+        <span>Phoenix Comp Educa</span>
+      </div>
+    </div>
+
+    <div class="sidebar-trilha-label">Trilha 2 — Usando os Robôs Phoenix</div>
+
+    <button class="mod-btn active" id="btn-mod1" onclick="goTo('mod1')">
+      <span class="mod-num">01</span> App BLE e Comandos
+      <span class="mod-check">✓</span>
+    </button>
+    <button class="mod-btn" id="btn-mod2" onclick="goTo('mod2')">
+      <span class="mod-num">02</span> Modos e Firmware
+      <span class="mod-check">✓</span>
+    </button>
+    <button class="mod-btn" id="btn-mod3" onclick="goTo('mod3')">
+      <span class="mod-num">03</span> Pure Pursuit
+      <span class="mod-check">✓</span>
+    </button>
+
+    <div class="sidebar-footer">
+      <div class="prog-label">
+        <span>Progresso</span>
+        <span id="prog-count">0 / 3</span>
+      </div>
+      <div class="prog-track">
+        <div class="prog-fill" id="prog-fill"></div>
+      </div>
+    </div>
+  </aside>
+
+  <main>
+    <div class="topbar">
+      <div class="topbar-title"><strong>Trilha 2</strong> — Usando os Robôs Phoenix</div>
+    </div>
+
+    <!-- ════════════════════════════════
+         MÓDULO 1 — App BLE
+    ════════════════════════════════ -->
+    <section class="mod-section active" id="mod1">
+      <div class="mod-header">
+        <div class="num">Módulo 01</div>
+        <h1>App Bluetooth e Comandos BLE</h1>
+        <p>Como o celular se comunica com a Bia, e todos os comandos que você precisa saber.</p>
+      </div>
+
+      <div class="content">
+        <h2>O App Phoenix</h2>
+        <p>A Bia (PHX-1) é controlada via <strong>Bluetooth Low Energy (BLE)</strong> usando o app Phoenix disponível para Android. O app envia comandos de texto terminados em <code>\r</code> e recebe respostas do robô em tempo real.</p>
+
+        <p>O app possui as seguintes telas principais:</p>
+        <ul>
+          <li><strong>Conexão:</strong> scan de dispositivos BLE, conectar/desconectar</li>
+          <li><strong>Dashboard:</strong> visão geral do estado, acesso rápido</li>
+          <li><strong>PID:</strong> sliders para Kp, Kd, velocidade base</li>
+          <li><strong>Calibração:</strong> sensores e giroscópio</li>
+          <li><strong>Corrida:</strong> botões START e STOP</li>
+          <li><strong>Linha Virtual:</strong> parâmetros do Pure Pursuit</li>
+          <li><strong>Telemetria:</strong> gráficos em tempo real</li>
+          <li><strong>Terminal:</strong> envio de comandos manuais</li>
+        </ul>
+
+        <h2>Protocolo de Comandos</h2>
+        <p>Todos os comandos são strings de texto terminadas com <code>\r</code>. Exemplos: <code>SST\r</code>, <code>PP,1.500\r</code>.</p>
+
+        <h3>Comandos essenciais — Operação</h3>
+        <table class="cmd-table">
+          <tr><th>Comando</th><th>Ação</th></tr>
+          <tr><td>SST</td><td>Inicia a corrida (Start)</td></tr>
+          <tr><td>SSP</td><td>Para a corrida (Stop)</td></tr>
+          <tr><td>GC</td><td>Calibra o giroscópio (deve ser feito com o robô parado)</td></tr>
+          <tr><td>KOK</td><td>Calibra os sensores de linha (passa sobre branco e preto)</td></tr>
+          <tr><td>COK</td><td>Confirma a configuração enviada (modo, parâmetros)</td></tr>
+        </table>
+
+        <h3>Seleção de Modo</h3>
+        <table class="cmd-table">
+          <tr><th>Comando</th><th>Modo</th></tr>
+          <tr><td>CLF</td><td>Line Follower — segue fisicamente a linha com sensores IR</td></tr>
+          <tr><td>CVL</td><td>Virtual Line — segue mapa gravado via Pure Pursuit</td></tr>
+          <tr><td>CLC</td><td>Line Chaser — perseguição de outro robô</td></tr>
+        </table>
+
+        <h3>Parâmetros PID</h3>
+        <table class="cmd-table">
+          <tr><th>Comando</th><th>Descrição</th></tr>
+          <tr><td>PP,1.500</td><td>Seta Kp = 1.5</td></tr>
+          <tr><td>PD,8.000</td><td>Seta Kd = 8.0</td></tr>
+          <tr><td>PV,180</td><td>Seta velocidade base = 180</td></tr>
+          <tr><td>PC</td><td>Consulta parâmetros PID atuais</td></tr>
+        </table>
+
+        <h3>Parâmetros do Pure Pursuit (Virtual Line)</h3>
+        <table class="cmd-table">
+          <tr><th>Comando</th><th>Descrição</th></tr>
+          <tr><td>VL,0.120</td><td>Look-ahead L_D = 12 cm</td></tr>
+          <tr><td>VG,0.70</td><td>Ganho do controlador PP = 0.7</td></tr>
+          <tr><td>VB,0.0</td><td>Blend linha física / PP (0 = puro PP, 1 = puro sensor)</td></tr>
+          <tr><td>VD,0</td><td>Desativa correção de drift (0=off, 1=on)</td></tr>
+          <tr><td>VC</td><td>Consulta parâmetros Virtual Line atuais</td></tr>
+        </table>
+
+        <h2>Fluxo de Uso — Line Follower</h2>
+        <div class="flow-step"><div class="flow-num">1</div><div class="flow-text"><code>GC</code> — calibra o giroscópio com o robô parado na linha de largada</div></div>
+        <div class="flow-step"><div class="flow-num">2</div><div class="flow-text"><code>KOK</code> — calibra os sensores: passe sobre branco e preto quando solicitado</div></div>
+        <div class="flow-step"><div class="flow-num">3</div><div class="flow-text"><code>CLF</code> → <code>COK</code> — seleciona modo Line Follower e confirma</div></div>
+        <div class="flow-step"><div class="flow-num">4</div><div class="flow-text">Ajuste Kp/Kd se necessário via sliders no app</div></div>
+        <div class="flow-step"><div class="flow-num">5</div><div class="flow-text"><code>SST</code> — larga o robô</div></div>
+        <div class="flow-step"><div class="flow-num">6</div><div class="flow-text"><code>SSP</code> — para quando quiser</div></div>
+
+        <!-- QUIZ -->
+        <div class="quiz-section">
+          <div class="quiz-title">Verificar Conhecimento — Módulo 01</div>
+          <div id="quiz-mod1"></div>
+          <div class="module-complete" id="complete-mod1">
+            <strong>Módulo 01 concluído!</strong> Você domina a interface BLE. Vamos entender o firmware.
+          </div>
+        </div>
+
+        <div class="nav-btns">
+          <button class="btn-nav" disabled>← Anterior</button>
+          <button class="btn-nav primary" onclick="goTo('mod2')">Próximo →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════
+         MÓDULO 2 — Modos e Firmware
+    ════════════════════════════════ -->
+    <section class="mod-section" id="mod2">
+      <div class="mod-header">
+        <div class="num">Módulo 02</div>
+        <h1>Modos de Operação e Firmware</h1>
+        <p>Como o firmware da Bia está organizado, os modos de corrida e por que o giroscópio sempre precisa ser calibrado.</p>
+      </div>
+
+      <div class="content">
+        <h2>Arquitetura do Firmware</h2>
+        <p>O firmware da Bia é escrito em C++ com framework Arduino rodando num <strong>ESP32-S3</strong>. Ele é organizado em módulos independentes, cada um responsável por uma parte do sistema:</p>
+
+        <ul>
+          <li><code>bluetooth</code> / <code>user_interface</code> — recebe comandos BLE, decodifica e chama os módulos corretos</li>
+          <li><code>line_sensors</code> — lê os 9 sensores frontais, calcula posição e faz calibração</li>
+          <li><code>motores</code> — controla PWM dos motores, aceleração progressiva</li>
+          <li><code>pid_controller</code> — implementa o controlador PD com Kp, Kd</li>
+          <li><code>giroscopio_module</code> — lê o IMU (MPU6050), integra heading</li>
+          <li><code>mapper_module</code> — grava e armazena o mapa da pista</li>
+          <li><code>virtual_line</code> — controlador Pure Pursuit</li>
+        </ul>
+
+        <div class="callout">
+          <strong>Separação de responsabilidades:</strong> cada módulo tem seu próprio .h e .cpp. Isso facilita desenvolvimento em equipe — uma pessoa pode trabalhar no PID enquanto outra trabalha no Pure Pursuit, sem conflitos.
+        </div>
+
+        <h2>Os Modos de Corrida</h2>
+
+        <h3>Line Follower (CLF)</h3>
+        <p>O robô usa os sensores IR frontais para detectar onde está a linha em tempo real. O controlador PD calcula a correção e diferencia as velocidades dos motores a cada ~2ms. É o modo mais simples e robusto.</p>
+
+        <h3>Virtual Line (CVL)</h3>
+        <p>O robô segue um <strong>mapa pré-gravado</strong> da pista usando odometria (encoder + giroscópio). Em vez de reagir à linha física, ele se pergunta: "onde estou no mapa? para onde devo ir?" O algoritmo responsável é o Pure Pursuit. É mais complexo mas permite velocidades maiores pois "vê" a curva antes de chegar nela.</p>
+
+        <h3>Line Chaser (CLC)</h3>
+        <p>Modo de perseguição — o robô detecta e persegue outro robô à frente. Usado em modalidades de disputa.</p>
+
+        <h2>Por que o Giroscópio Precisa Ser Calibrado Sempre?</h2>
+        <p>O giroscópio (parte do IMU MPU6050) é um <strong>sensor inercial</strong>: ele mede a velocidade angular instantânea e integra o valor ao longo do tempo para estimar o ângulo (heading).</p>
+        <p>O problema: qualquer pequeno offset no valor "zero" do sensor se acumula ao longo do tempo (drift). Se ao ligar o robô o giroscópio não for zerado (<code>GC</code>), o heading ficará sempre errado — e toda a odometria do Virtual Line ficará incorreta desde o início.</p>
+
+        <div class="callout">
+          <strong>Regra:</strong> sempre que ligar o robô para uma sessão de testes, execute <code>GC</code> com o robô <em>completamente parado</em> e <em>nivelado</em>. O firmware faz uma média de N amostras para calibrar o zero.
+        </div>
+
+        <h2>Aceleração Progressiva e ESC</h2>
+        <p>Para evitar derrapagem na largada e estressar menos a mecânica, o firmware inclui um sistema de <strong>aceleração progressiva</strong>: ao receber <code>SST</code>, o robô aumenta gradualmente a velocidade até atingir a velocidade base configurada, em vez de largar na velocidade máxima instantaneamente.</p>
+        <p>O <strong>ESC</strong> (Electronic Speed Control) pode ser ativado para refinar ainda mais o controle de torque dos motores.</p>
+
+        <!-- QUIZ -->
+        <div class="quiz-section">
+          <div class="quiz-title">Verificar Conhecimento — Módulo 02</div>
+          <div id="quiz-mod2"></div>
+          <div class="module-complete" id="complete-mod2">
+            <strong>Módulo 02 concluído!</strong> Firmware compreendido. Último módulo — o algoritmo mais avançado.
+          </div>
+        </div>
+
+        <div class="nav-btns">
+          <button class="btn-nav" onclick="goTo('mod1')">← Anterior</button>
+          <button class="btn-nav primary" onclick="goTo('mod3')">Próximo →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════
+         MÓDULO 3 — Pure Pursuit
+    ════════════════════════════════ -->
+    <section class="mod-section" id="mod3">
+      <div class="mod-header">
+        <div class="num">Módulo 03</div>
+        <h1>Pure Pursuit e Linha Virtual</h1>
+        <p>O algoritmo que permite ao robô seguir um mapa sem depender dos sensores de linha.</p>
+      </div>
+
+      <div class="content">
+        <h2>O que é Pure Pursuit?</h2>
+        <p>Pure Pursuit é um algoritmo clássico de controle de caminho (<em>path tracking</em>) usado em robótica móvel e veículos autônomos. A ideia central é simples: defina um <strong>ponto alvo</strong> no caminho a uma distância fixa L_D à frente do robô, e calcule o ângulo necessário para alcançá-lo.</p>
+
+        <h2>Como funciona na Bia</h2>
+
+        <h3>Etapa 1: Mapeamento</h3>
+        <p>Antes de usar o Virtual Line, você precisa mapear a pista. O robô faz uma volta em modo Line Follower enquanto o módulo <code>mapper_module</code> grava um ponto a cada milímetro percorrido:</p>
+        <pre>
+<span class="c">// Cada ponto no mapa tem:</span>
+struct TrackPoint {
+    float x;            <span class="c">// posição X no plano (metros)</span>
+    float y;            <span class="c">// posição Y no plano (metros)</span>
+    float distance_m;   <span class="c">// distância acumulada desde o início</span>
+    float target_speed; <span class="c">// velocidade recomendada nesse ponto</span>
+};</pre>
+
+        <h3>Etapa 2: Odometria em Tempo Real</h3>
+        <p>Durante a corrida com Virtual Line, o firmware estima continuamente a posição (X, Y) do robô usando:</p>
+        <ul>
+          <li><strong>Encoder:</strong> mede a distância percorrida</li>
+          <li><strong>Giroscópio:</strong> mede o ângulo (heading) atual</li>
+        </ul>
+        <pre>
+<span class="c">// A cada ciclo (~2ms):</span>
+delta_dist = dist_atual - dist_anterior
+robot_x += delta_dist * cos(heading_rad)
+robot_y += delta_dist * sin(heading_rad)</pre>
+
+        <h3>Etapa 3: Busca do Ponto Alvo</h3>
+        <p>O algoritmo varre o mapa a partir da posição atual e encontra o <strong>primeiro ponto a distância ≥ L_D</strong> do robô. Esse é o ponto alvo.</p>
+
+        <h3>Etapa 4: Cálculo da Correção</h3>
+        <pre>
+<span class="c">// α = ângulo entre orientação do robô e direção ao ponto alvo</span>
+alpha = atan2(target_y - robot_y, target_x - robot_x) - heading
+
+<span class="c">// omega = curvatura necessária (Pure Pursuit clássico)</span>
+omega = (2 * sin(alpha)) / L_D
+
+<span class="c">// correção para os motores</span>
+correcao = ganho * omega</pre>
+
+        <h2>Parâmetros Chave</h2>
+
+        <table class="cmd-table">
+          <tr><th>Parâmetro</th><th>Efeito</th></tr>
+          <tr><td>VL (L_D)</td><td>Look-ahead. Maior = trajetória mais suave mas reage mais tarde às curvas. Menor = reage mais rápido mas pode oscilar.</td></tr>
+          <tr><td>VG (ganho)</td><td>Amplificação da correção. Muito alto = oscila. Muito baixo = não corrige suficiente.</td></tr>
+          <tr><td>VB (blend)</td><td>Mistura Pure Pursuit com sensor de linha físico. 0.0 = puro PP, 1.0 = puro sensor. Útil para corrigir erros de odometria em retas.</td></tr>
+          <tr><td>VD (drift)</td><td>Correção de drift: usa os sensores para "ancorar" a posição estimada à pista real.</td></tr>
+        </table>
+
+        <h2>Fluxo Completo — Virtual Line</h2>
+        <div class="flow-step"><div class="flow-num">1</div><div class="flow-text"><code>GC</code> → <code>KOK</code> — calibra giroscópio e sensores</div></div>
+        <div class="flow-step"><div class="flow-num">2</div><div class="flow-text"><code>CLF</code> → <code>COK</code> → <code>SST</code> — mapeia a pista em modo Line Follower</div></div>
+        <div class="flow-step"><div class="flow-num">3</div><div class="flow-text"><code>SSP</code> — para após completar a volta de mapeamento</div></div>
+        <div class="flow-step"><div class="flow-num">4</div><div class="flow-text">Verifique o mapa via <code>VC</code> (deve mostrar N pontos razoável)</div></div>
+        <div class="flow-step"><div class="flow-num">5</div><div class="flow-text"><code>CVL</code> → <code>COK</code> — muda para modo Virtual Line</div></div>
+        <div class="flow-step"><div class="flow-num">6</div><div class="flow-text">Ajuste <code>VL</code>, <code>VG</code>, <code>VB</code> se necessário</div></div>
+        <div class="flow-step"><div class="flow-num">7</div><div class="flow-text"><code>SST</code> — larga com Pure Pursuit ativo</div></div>
+
+        <div class="callout">
+          <strong>Dica:</strong> comece com <code>VD,0</code> (drift off) e <code>VB,0.0</code> (puro PP) para estabilizar primeiro. Depois, reintroduza o blend e drift gradualmente para melhorar a performance.
+        </div>
+
+        <!-- QUIZ -->
+        <div class="quiz-section">
+          <div class="quiz-title">Verificar Conhecimento — Módulo 03</div>
+          <div id="quiz-mod3"></div>
+          <div class="module-complete" id="complete-mod3">
+            <strong>Trilha 2 concluída!</strong> Você entende como operar os robôs da equipe Phoenix de ponta a ponta. Excelente trabalho.
+          </div>
+        </div>
+
+        <div class="nav-btns">
+          <button class="btn-nav" onclick="goTo('mod2')">← Anterior</button>
+          <button class="btn-nav primary" onclick="window.location.href='index.html'">Início ↩</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const QUIZZES = {
+      mod1: [
+        {
+          q: 'Qual sequência correta para iniciar uma corrida em modo Line Follower?',
+          opts: ['SST → COK → CLF', 'GC → KOK → CLF → COK → SST', 'COK → SST → GC', 'KOK → CVL → SST'],
+          correct: 1,
+          explain: 'Ordem: calibra giroscópio (GC), calibra sensores (KOK), seleciona modo (CLF), confirma (COK) e então larga (SST).'
+        },
+        {
+          q: 'O que faz o comando <code>KOK</code>?',
+          opts: ['Calibra o giroscópio com o robô parado', 'Para a corrida imediatamente (Kill OK)', 'Inicia o mapeamento da pista', 'Calibra os sensores de linha'],
+          correct: 3,
+          explain: '<code>KOK</code> dispara a calibração dos sensores de linha — o robô mede os extremos (branco máximo, preto máximo) para normalizar as leituras.'
+        },
+        {
+          q: 'Como se seta Kp = 1.5 via BLE no protocolo Phoenix?',
+          opts: ['KP,1.5', 'PP,1.500', 'KP=1.500', 'PID,P,1.500'],
+          correct: 1,
+          explain: 'O protocolo usa prefixo de 2 letras + valor: <code>PP</code> para Kp, <code>PD</code> para Kd, <code>PV</code> para velocidade base.'
+        },
+        {
+          q: 'Qual comando consulta os parâmetros atuais do Virtual Line?',
+          opts: ['PC', 'PQ', 'VC', 'VQ'],
+          correct: 2,
+          explain: '<code>VC</code> (Virtual Check) retorna os parâmetros atuais do Pure Pursuit: L_D, ganho, blend, mapa. <code>PC</code> é para o PID convencional.'
+        }
+      ],
+      mod2: [
+        {
+          q: 'Qual a principal diferença entre Line Follower e Virtual Line?',
+          opts: ['Virtual Line é automaticamente mais rápido que Line Follower', 'Line Follower usa sensores IR para seguir; Virtual Line usa mapa pré-gravado + odometria (Pure Pursuit)', 'Line Follower não usa giroscópio; Virtual Line usa giroscópio e encoders', 'São idênticos, apenas com velocidades diferentes'],
+          correct: 1,
+          explain: 'No Line Follower, o robô reage em tempo real aos sensores. No Virtual Line, ele segue um mapa usando posição estimada — sem precisar "ver" a linha.'
+        },
+        {
+          q: 'Por que o giroscópio precisa ser calibrado (<code>GC</code>) a cada uso?',
+          opts: ['Porque o sensor esquece os dados ao ser desligado, perdendo a calibração de zero', 'Para melhorar a velocidade da conexão Bluetooth', 'Para zerar o contador de voltas da corrida', 'Para sincronizar o relógio interno do ESP32'],
+          correct: 0,
+          explain: 'O giroscópio é inercial: mede variação de ângulo. Sem calibrar o zero (GC), qualquer offset se acumula ao longo do tempo (drift), corrompendo a odometria.'
+        },
+        {
+          q: 'Qual módulo do firmware recebe e decodifica os comandos BLE?',
+          opts: ['virtual_line', 'mapper_module', 'bluetooth / user_interface', 'line_sensors'],
+          correct: 2,
+          explain: 'O módulo <code>user_interface</code> (em conjunto com <code>bluetooth</code>) recebe as strings BLE, identifica o comando (ex: PP, VL, SST) e chama a função do módulo correto.'
+        },
+        {
+          q: 'Para que serve a aceleração progressiva no firmware?',
+          opts: ['Para aumentar a velocidade máxima do robô', 'Para evitar derrapagem na largada aumentando a velocidade gradualmente', 'Para desacelerar antes das curvas automaticamente', 'Para calibrar os motores na inicialização'],
+          correct: 1,
+          explain: 'Sem aceleração progressiva, o robô larga na velocidade máxima instantaneamente, causando patinagem dos pneus e perda de aderência. A rampa suaviza a largada.'
+        }
+      ],
+      mod3: [
+        {
+          q: 'O que é o look-ahead (L_D) no algoritmo Pure Pursuit?',
+          opts: ['A distância máxima que o robô percorre por volta', 'O tempo de reação do giroscópio a mudanças de ângulo', 'A distância à frente do robô onde se busca o ponto alvo no mapa', 'O ganho proporcional do controlador de caminho'],
+          correct: 2,
+          explain: 'L_D define o "horizonte" do robô: ele busca no mapa o primeiro ponto a essa distância. L_D grande = curvas suaves. L_D pequeno = reativo mas pode oscilar.'
+        },
+        {
+          q: 'Qual a sequência correta para usar o modo Virtual Line do zero?',
+          opts: ['CVL → COK → SST (direto)', 'GC → KOK → CLF → COK → SST → SSP → CVL → COK → SST', 'MLOAD → SST', 'GC → CVL → SST'],
+          correct: 1,
+          explain: 'Primeiro mapeie em Line Follower (CLF → SST → SSP). Depois troque para Virtual Line (CVL → COK) e larga novamente (SST).'
+        },
+        {
+          q: 'O que o parâmetro VB (blend) controla no modo Virtual Line?',
+          opts: ['A velocidade máxima do robô em metros por segundo', 'O número de voltas que o robô dá seguindo o mapa', 'A mistura entre a correção do Pure Pursuit e a do sensor de linha físico', 'O ângulo de ataque nas curvas do percurso'],
+          correct: 2,
+          explain: '<code>VB = 0.0</code> = puro Pure Pursuit (ignora sensores). <code>VB = 1.0</code> = puro sensor de linha. Valores intermediários combinam os dois, compensando erros de odometria.'
+        },
+        {
+          q: 'Por que se recomenda começar com VD,0 (drift off) ao testar Virtual Line?',
+          opts: ['Para economizar bateria durante os testes iniciais', 'Para não depender de sensores de linha que possam estar descalibrados', 'Para estabilizar o Pure Pursuit puro antes de introduzir correções adicionais que possam conflitar', 'Porque VD e VB não podem ser usados simultaneamente'],
+          correct: 2,
+          explain: 'A correção de drift atua sobre a posição estimada. Se o PP ainda está instável, adicionar drift pode amplificar oscilações. Estabilize o PP primeiro, depois reintroduza drift e blend gradualmente.'
+        }
+      ]
+    };
+
+    const MODS = ['mod1','mod2','mod3'];
+    const answered = {};
+
+    function goTo(id) {
+      document.querySelectorAll('.mod-section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.mod-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      document.getElementById('btn-' + id).classList.add('active');
+      window.scrollTo(0, 0);
+      document.getElementById('sidebar').classList.remove('open');
+    }
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    function renderQuiz(modId) {
+      const qs = QUIZZES[modId];
+      const container = document.getElementById('quiz-' + modId);
+      answered[modId] = new Array(qs.length).fill(false);
+
+      qs.forEach((q, qi) => {
+        const div = document.createElement('div');
+        div.className = 'question';
+        div.innerHTML = `
+          <p class="q-text"><span class="q-num">${qi + 1}.</span> ${q.q}</p>
+          <div class="q-opts" id="opts-${modId}-${qi}">
+            ${q.opts.map((opt, oi) => `
+              <label class="q-opt" id="opt-${modId}-${qi}-${oi}" onclick="selectOpt('${modId}',${qi},${oi})">
+                <input type="radio" name="q-${modId}-${qi}" value="${oi}">
+                <span class="opt-letter">${String.fromCharCode(65+oi)}</span>
+                <span class="opt-text">${opt}</span>
+              </label>
+            `).join('')}
+          </div>
+          <button class="btn-verify" id="btn-${modId}-${qi}" onclick="verify('${modId}',${qi},${q.correct})" disabled>Verificar</button>
+          <div class="q-feedback" id="fb-${modId}-${qi}">
+            <span class="fb-result" id="fbr-${modId}-${qi}"></span>
+            <span class="fb-explain">${q.explain}</span>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function selectOpt(modId, qi, oi) {
+      document.querySelectorAll(`#opts-${modId}-${qi} .q-opt`).forEach(el => el.classList.remove('selected'));
+      document.getElementById(`opt-${modId}-${qi}-${oi}`).classList.add('selected');
+      document.getElementById(`btn-${modId}-${qi}`).disabled = false;
+    }
+
+    function verify(modId, qi, correct) {
+      const selected = document.querySelector(`input[name="q-${modId}-${qi}"]:checked`);
+      if (!selected) return;
+
+      const selVal = parseInt(selected.value);
+      const isCorrect = selVal === correct;
+
+      document.querySelectorAll(`input[name="q-${modId}-${qi}"]`).forEach(inp => inp.disabled = true);
+      document.getElementById(`btn-${modId}-${qi}`).disabled = true;
+
+      for (let oi = 0; oi < QUIZZES[modId][qi].opts.length; oi++) {
+        const el = document.getElementById(`opt-${modId}-${qi}-${oi}`);
+        el.style.cursor = 'default';
+        if (oi === correct) el.classList.add('correct');
+        else if (oi === selVal && !isCorrect) el.classList.add('wrong');
+      }
+
+      const fb = document.getElementById(`fb-${modId}-${qi}`);
+      const fbr = document.getElementById(`fbr-${modId}-${qi}`);
+      fb.style.display = 'block';
+      fbr.textContent = isCorrect ? '✓ Correto!' : '✗ Errado.';
+      fbr.style.color = isCorrect ? '#4caf50' : '#f44336';
+
+      answered[modId][qi] = true;
+      checkComplete(modId);
+    }
+
+    function checkComplete(modId) {
+      if (answered[modId].every(Boolean)) {
+        document.getElementById('complete-' + modId).style.display = 'block';
+        localStorage.setItem(`pce_t2_${modId}`, 'done');
+        document.getElementById('btn-' + modId).classList.add('done');
+        updateProgress();
+      }
+    }
+
+    function updateProgress() {
+      let done = 0;
+      MODS.forEach(m => { if (localStorage.getItem(`pce_t2_${m}`) === 'done') done++; });
+      document.getElementById('prog-fill').style.width = Math.round(done / MODS.length * 100) + '%';
+      document.getElementById('prog-count').textContent = `${done} / ${MODS.length}`;
+    }
+
+    MODS.forEach(m => renderQuiz(m));
+
+    MODS.forEach(m => {
+      if (localStorage.getItem(`pce_t2_${m}`) === 'done') {
+        document.getElementById('btn-' + m).classList.add('done');
+        document.getElementById('complete-' + m).style.display = 'block';
+        answered[m] = new Array(QUIZZES[m].length).fill(true);
+      }
+    });
+
+    updateProgress();
+  </script>
+</body>
+</html>

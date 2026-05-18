@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Phoenix Comp Educa</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    :root {
+      --bg: #080600;
+      --surface: #110e00;
+      --orange: #ff6a00;
+      --gold: #ffaa00;
+      --text: #f0ece0;
+      --muted: #7a6a50;
+      --border: rgba(255, 106, 0, 0.18);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    #bg {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .page { position: relative; z-index: 1; }
+
+    /* NAV */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      padding: 18px 48px;
+      background: rgba(8, 6, 0, 0.88);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .nav-logo img {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 2px solid var(--orange);
+      object-fit: cover;
+    }
+
+    .nav-logo span {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--orange);
+      letter-spacing: 0.04em;
+    }
+
+    /* HERO */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 120px 2rem 3rem;
+    }
+
+    .hero-tag {
+      display: inline-block;
+      color: var(--orange);
+      font-size: 0.72rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      border: 1px solid rgba(255, 106, 0, 0.3);
+      padding: 0.3rem 1rem;
+      border-radius: 100px;
+      margin-bottom: 2rem;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.2rem, 5.5vw, 4rem);
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 1.5rem;
+      letter-spacing: -0.02em;
+    }
+
+    .hero h1 em {
+      font-style: normal;
+      color: var(--orange);
+    }
+
+    .hero p {
+      color: var(--muted);
+      font-size: 1.05rem;
+      max-width: 540px;
+      margin-bottom: 3rem;
+    }
+
+    .hero-arrow {
+      color: var(--muted);
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+      animation: bounce 2s infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(6px); }
+    }
+
+    /* TRILHA CARDS */
+    .section-cards {
+      padding: 4rem 2rem 6rem;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      color: var(--orange);
+      font-size: 0.72rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 2.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 2.2rem;
+      text-decoration: none;
+      color: var(--text);
+      transition: all 0.3s ease;
+      display: block;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(255,106,0,0.04), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .card:hover {
+      border-color: rgba(255, 106, 0, 0.5);
+      transform: translateY(-5px);
+      box-shadow: 0 16px 50px rgba(255, 106, 0, 0.12);
+    }
+
+    .card:hover::after { opacity: 1; }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+    }
+
+    .card-num {
+      color: var(--orange);
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .card-badge {
+      font-size: 0.68rem;
+      padding: 0.2rem 0.7rem;
+      border-radius: 100px;
+      background: rgba(255, 106, 0, 0.1);
+      border: 1px solid rgba(255, 106, 0, 0.25);
+      color: var(--orange);
+    }
+
+    .card h2 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      line-height: 1.25;
+      margin-bottom: 0.8rem;
+      letter-spacing: -0.01em;
+    }
+
+    .card p {
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.75;
+      margin-bottom: 1.5rem;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-bottom: 1.8rem;
+    }
+
+    .tag {
+      background: rgba(255, 170, 0, 0.08);
+      border: 1px solid rgba(255, 170, 0, 0.2);
+      color: var(--gold);
+      font-size: 0.68rem;
+      padding: 0.2rem 0.65rem;
+      border-radius: 5px;
+      letter-spacing: 0.04em;
+    }
+
+    .card-progress-wrap {
+      margin-bottom: 1.5rem;
+    }
+
+    .card-progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+    }
+
+    .card-progress-track {
+      height: 3px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .card-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--orange), var(--gold));
+      border-radius: 2px;
+      transition: width 0.6s ease;
+      width: 0%;
+    }
+
+    .card-cta {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--orange);
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+
+    .card-cta .arrow {
+      transition: transform 0.2s;
+    }
+
+    .card:hover .card-cta .arrow { transform: translateX(5px); }
+
+    /* ABOUT SECTION */
+    .section-about {
+      padding: 3rem 2rem 6rem;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .about-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.2rem;
+    }
+
+    .about-item {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.5rem;
+      background: rgba(17, 14, 0, 0.5);
+    }
+
+    .about-item .icon {
+      color: var(--orange);
+      font-size: 1.2rem;
+      font-family: monospace;
+      font-weight: 700;
+      margin-bottom: 0.6rem;
+    }
+
+    .about-item h3 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+    }
+
+    .about-item p {
+      color: var(--muted);
+      font-size: 0.8rem;
+      line-height: 1.6;
+    }
+
+    /* FOOTER */
+    footer {
+      text-align: center;
+      padding: 2.5rem 2rem;
+      color: var(--muted);
+      font-size: 0.78rem;
+      border-top: 1px solid var(--border);
+    }
+
+    footer strong { color: var(--orange); }
+
+    @media (max-width: 600px) {
+      nav { padding: 14px 20px; }
+      .hero h1 { font-size: 2rem; }
+      .section-cards, .section-about { padding-left: 1rem; padding-right: 1rem; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="bg"></canvas>
+  <div class="page">
+    <nav>
+      <a class="nav-logo" href="#">
+        <img src="phoenix.jpg" alt="Phoenix">
+        <span>Phoenix Comp Educa</span>
+      </a>
+    </nav>
+
+    <div class="hero">
+      <div class="hero-tag">Phoenix Unicamp &nbsp;·&nbsp; Seguidor de Linha</div>
+      <h1>Aprenda a programar<br>o <em>robô seguidor</em>.</h1>
+      <p>Do zero absoluto ao controle PID. Duas trilhas, um destino: entender e melhorar os robôs da equipe.</p>
+      <div class="hero-arrow">↓ &nbsp; escolha sua trilha &nbsp; ↓</div>
+    </div>
+
+    <div class="section-cards">
+      <div class="section-label">Trilhas de Desenvolvimento</div>
+      <div class="cards-grid">
+
+        <a class="card" href="trilha1.html">
+          <div class="card-top">
+            <span class="card-num">Trilha 01</span>
+            <span class="card-badge">5 módulos</span>
+          </div>
+          <h2>Do Zero ao Seguidor</h2>
+          <p>Para quem está começando. Aprenda C/C++, ferramentas de desenvolvimento, sensores de linha, motores e controle PID construindo seu próprio seguidor.</p>
+          <div class="tags">
+            <span class="tag">C/C++</span>
+            <span class="tag">Arduino</span>
+            <span class="tag">Git</span>
+            <span class="tag">Sensores IR</span>
+            <span class="tag">Motores PWM</span>
+            <span class="tag">PID</span>
+          </div>
+          <div class="card-progress-wrap">
+            <div class="card-progress-label">
+              <span>Progresso</span>
+              <span id="t1-label">0 / 5</span>
+            </div>
+            <div class="card-progress-track">
+              <div class="card-progress-fill" id="t1-prog"></div>
+            </div>
+          </div>
+          <div class="card-cta">Começar trilha <span class="arrow">→</span></div>
+        </a>
+
+        <a class="card" href="trilha2.html">
+          <div class="card-top">
+            <span class="card-num">Trilha 02</span>
+            <span class="card-badge">3 módulos</span>
+          </div>
+          <h2>Usando os Robôs Phoenix</h2>
+          <p>Para quem já programa e quer operar a Bia. Controle BLE, modos de corrida, firmware e Pure Pursuit — tudo que você precisa para correr com os robôs da equipe.</p>
+          <div class="tags">
+            <span class="tag">BLE</span>
+            <span class="tag">Firmware</span>
+            <span class="tag">Pure Pursuit</span>
+            <span class="tag">Bia PHX-1</span>
+            <span class="tag">Virtual Line</span>
+          </div>
+          <div class="card-progress-wrap">
+            <div class="card-progress-label">
+              <span>Progresso</span>
+              <span id="t2-label">0 / 3</span>
+            </div>
+            <div class="card-progress-track">
+              <div class="card-progress-fill" id="t2-prog"></div>
+            </div>
+          </div>
+          <div class="card-cta">Começar trilha <span class="arrow">→</span></div>
+        </a>
+
+      </div>
+    </div>
+
+    <div class="section-about">
+      <div class="section-label">Como funciona</div>
+      <div class="about-grid">
+        <div class="about-item">
+          <div class="icon">#01</div>
+          <h3>Leia a teoria</h3>
+          <p>Cada módulo começa com explicações claras, código de exemplo e conceitos aplicados ao robô seguidor.</p>
+        </div>
+        <div class="about-item">
+          <div class="icon">#02</div>
+          <h3>Responda as questões</h3>
+          <p>Quiz interativo ao final de cada módulo com feedback imediato e explicação das respostas.</p>
+        </div>
+        <div class="about-item">
+          <div class="icon">#03</div>
+          <h3>Progresso salvo</h3>
+          <p>Seu avanço é salvo automaticamente. Continue de onde parou a qualquer momento.</p>
+        </div>
+        <div class="about-item">
+          <div class="icon">#04</div>
+          <h3>Mão na massa</h3>
+          <p>As trilhas indicam tarefas práticas para você aplicar o conhecimento com hardware real ou simuladores.</p>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <strong>Phoenix Unicamp</strong> — Equipe de Robótica Seguidor de Linha &nbsp;·&nbsp; Treinamento Computacional
+    </footer>
+  </div>
+
+  <script>
+    // ThreeJS — rede de partículas
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('bg'), antialias: true, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x080600, 1);
+    camera.position.z = 32;
+
+    const N = 110;
+    const posArr = new Float32Array(N * 3);
+    const vel = [];
+    for (let i = 0; i < N; i++) {
+      posArr[i*3]   = (Math.random()-0.5)*90;
+      posArr[i*3+1] = (Math.random()-0.5)*70;
+      posArr[i*3+2] = (Math.random()-0.5)*15;
+      vel.push({ x: (Math.random()-0.5)*0.025, y: (Math.random()-0.5)*0.025 });
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(posArr, 3));
+    const mat = new THREE.PointsMaterial({ color: 0xff6a00, size: 0.22, transparent: true, opacity: 0.75 });
+    scene.add(new THREE.Points(geo, mat));
+
+    const lineMat = new THREE.LineBasicMaterial({ color: 0xff6a00, transparent: true, opacity: 0.07 });
+    let lineObj;
+
+    function buildLines() {
+      if (lineObj) scene.remove(lineObj);
+      const pts = [];
+      for (let i = 0; i < N; i++) {
+        for (let j = i+1; j < N; j++) {
+          const dx = posArr[i*3]-posArr[j*3];
+          const dy = posArr[i*3+1]-posArr[j*3+1];
+          if (dx*dx+dy*dy < 144) {
+            pts.push(posArr[i*3], posArr[i*3+1], posArr[i*3+2]);
+            pts.push(posArr[j*3], posArr[j*3+1], posArr[j*3+2]);
+          }
+        }
+      }
+      const lg = new THREE.BufferGeometry();
+      lg.setAttribute('position', new THREE.BufferAttribute(new Float32Array(pts), 3));
+      lineObj = new THREE.LineSegments(lg, lineMat);
+      scene.add(lineObj);
+    }
+
+    let mx = 0, my = 0;
+    document.addEventListener('mousemove', e => {
+      mx = (e.clientX/window.innerWidth - 0.5)*90;
+      my = -(e.clientY/window.innerHeight - 0.5)*70;
+    });
+
+    (function animate() {
+      requestAnimationFrame(animate);
+      for (let i = 0; i < N; i++) {
+        posArr[i*3]   += vel[i].x;
+        posArr[i*3+1] += vel[i].y;
+        if (Math.abs(posArr[i*3]) > 45)   vel[i].x *= -1;
+        if (Math.abs(posArr[i*3+1]) > 35) vel[i].y *= -1;
+        const dx = posArr[i*3]-mx, dy = posArr[i*3+1]-my;
+        const d2 = dx*dx+dy*dy;
+        if (d2 < 64) { const d = Math.sqrt(d2); posArr[i*3] += dx/d*0.1; posArr[i*3+1] += dy/d*0.1; }
+      }
+      geo.attributes.position.needsUpdate = true;
+      buildLines();
+      renderer.render(scene, camera);
+    })();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth/window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // Progresso
+    function loadProgress(prefix, total, fillId, labelId) {
+      let done = 0;
+      for (let i = 1; i <= total; i++) {
+        if (localStorage.getItem(`pce_${prefix}_mod${i}`) === 'done') done++;
+      }
+      document.getElementById(fillId).style.width = Math.round(done/total*100)+'%';
+      document.getElementById(labelId).textContent = `${done} / ${total}`;
+    }
+
+    loadProgress('t1', 5, 't1-prog', 't1-label');
+    loadProgress('t2', 3, 't2-prog', 't2-label');
+  </script>
+</body>
+</html>
