@@ -554,44 +554,595 @@
       </div>
 
       <div class="content">
-        <h2>O que é uma linguagem de programação?</h2>
-        <p>Computadores (e microcontroladores dentro de robôs) trabalham com 0s e 1s — a linguagem binária. Uma linguagem de programação é um <strong>tradutor</strong>: você escreve código em algo próximo ao inglês/matemática e o compilador converte para os 0s e 1s que o hardware entende.</p>
-        <p>Quanto mais próxima da linguagem humana, mais "alto nível" é a linguagem. C e C++ são linguagens de nível médio — mais próximas da máquina que Python, mas muito mais legíveis que Assembly.</p>
 
-        <h2>C vs C++</h2>
-        <p>A linguagem <strong>C</strong> foi criada nos anos 70 e é a base de grande parte do software embarcado no mundo. <strong>C++</strong> é uma extensão do C que adiciona recursos como Orientação a Objetos — pense nela como um C com ferramentas extras.</p>
-        <p>No Arduino (e no firmware da Bia), usamos C++ com o framework Arduino, que adiciona funções específicas para hardware como <code>digitalRead()</code>, <code>analogWrite()</code> e <code>delay()</code>.</p>
+        <h2>O que é um Programa de Computador?</h2>
+        <p>Computadores, microcontroladores, smartphones — toda máquina digital opera com o mesmo princípio básico: ela só entende dois estados elétricos, que representamos como <strong>0</strong> (sem tensão) e <strong>1</strong> (com tensão). A partir desses dois símbolos, toda a computação do planeta é construída.</p>
+        <p>Um processador moderno executa bilhões de instruções por segundo, e cada instrução é uma sequência de 0s e 1s. Escrever programas diretamente nessa linguagem binária seria humanamente impossível. Por isso existem as <strong>linguagens de programação</strong> — elas são tradutores entre a nossa linguagem (palavras, símbolos matemáticos, lógica) e a linguagem da máquina.</p>
+        <p>Quanto mais a linguagem se parece com o inglês ou com matemática, mais <strong>alto nível</strong> ela é. Python é uma linguagem de alto nível: você escreve <code>print("olá")</code> e ela cuida de tudo. Assembly é quase a linguagem da máquina, praticamente ilegível para humanos. C e C++ ficam no meio: são legíveis o suficiente para programar com produtividade, mas próximos o suficiente do hardware para controlar cada detalhe — o que é essencial em robótica.</p>
 
         <div class="callout">
-          <strong>Compilação:</strong> em C/C++, o código precisa ser compilado antes de rodar. O compilador lê todo o código, checa erros e gera um binário. Se tiver um erro de sintaxe, você descobre na compilação — antes de subir para o robô.
+          <strong>Por que C/C++ e não Python?</strong> Microcontroladores como o ESP32-S3 da Bia têm ~512KB de RAM e precisam responder a eventos em microssegundos. C/C++ gera código compacto e previsível. Python é ~10–100x mais lento e usa muito mais memória. Para robótica embarcada, C/C++ é a escolha padrão na indústria.
         </div>
 
-        <h2>Variáveis e Tipos</h2>
-        <p>Variáveis armazenam valores que o programa usa. Em C/C++, você deve declarar o <strong>tipo</strong> da variável antes de usá-la:</p>
-        <pre>
-<span class="ty">int</span>    contador      = <span class="num">0</span>;       <span class="c">// número inteiro: -2.147B a +2.147B</span>
-<span class="ty">float</span>  velocidade    = <span class="num">1.5</span>;     <span class="c">// número decimal (ponto flutuante)</span>
-<span class="ty">bool</span>   calibrado     = <span class="kw">false</span>;   <span class="c">// verdadeiro ou falso</span>
-<span class="ty">char</span>   letra         = <span class="str">'A'</span>;     <span class="c">// um único caractere</span>
-<span class="ty">uint8_t</span> pwm_valor   = <span class="num">200</span>;     <span class="c">// inteiro 8 bits sem sinal: 0 a 255</span></pre>
+        <h2>A Linguagem C e a Linguagem C++</h2>
+        <p>A linguagem <strong>C</strong> foi criada em 1972 por Dennis Ritchie nos Bell Labs (mesma empresa onde nasceu o Unix). É uma das linguagens mais influentes já criadas — o kernel do Linux, o Windows, grande parte do firmware de equipamentos médicos, automotivos e aeroespaciais são escritos em C.</p>
+        <p>A linguagem <strong>C++</strong> foi criada em 1979 por Bjarne Stroustrup como uma extensão do C. Ela adiciona:</p>
+        <ul>
+          <li><strong>Classes e objetos</strong> (Programação Orientada a Objetos)</li>
+          <li><strong>Templates</strong> (código genérico para múltiplos tipos)</li>
+          <li><strong>Sobrecarga de operadores</strong> (definir o que + faz para seus tipos)</li>
+          <li><strong>Biblioteca padrão rica</strong> (<code>std::vector</code>, <code>std::string</code>, etc.)</li>
+          <li><strong>Gerenciamento de memória mais seguro</strong> (referências, RAII)</li>
+        </ul>
+        <p>Todo código C válido também é C++ válido (com raras exceções). Pense em C++ como C com muitas ferramentas extras — você pode usá-las quando quiser e ignorá-las quando não precisar.</p>
+        <p>No firmware da Bia usamos <strong>C++ com o framework Arduino</strong>. O Arduino adiciona uma camada de funções específicas para hardware, tornando mais fácil ler sensores, controlar pinos e comunicar via Serial ou BLE.</p>
 
-        <p>No firmware do robô você vai encontrar muito <code>float</code> (ganhos do PID, velocidades) e <code>uint8_t</code>/<code>int</code> (leituras de sensores, contadores).</p>
+        <h2>Como o Código Vira um Robô: A Compilação</h2>
+        <p>C/C++ são linguagens <strong>compiladas</strong>. Isso significa que antes de qualquer coisa acontecer no hardware, o código-fonte passa por um processo de transformação chamado compilação. Entender esse processo vai te ajudar a interpretar erros e depurar problemas.</p>
+
+        <h3>Passo 1 — Preprocessamento</h3>
+        <p>O preprocessador (cpp) trata todas as linhas que começam com <code>#</code>. Ele substitui <code>#include</code> pelo conteúdo dos arquivos de cabeçalho, expande <code>#define</code> e processa diretivas condicionais (<code>#ifdef</code>, <code>#endif</code>). O resultado é um arquivo C++ puro, sem diretivas.</p>
+
+        <h3>Passo 2 — Compilação</h3>
+        <p>O compilador (g++ ou clang++) lê o C++ pré-processado e o converte em <strong>código Assembly</strong> — instruções específicas do processador, mas ainda legíveis por humanos. Aqui acontece também a verificação de tipos, a otimização do código e a detecção de erros de sintaxe e semântica.</p>
+
+        <h3>Passo 3 — Montagem (Assembly)</h3>
+        <p>O montador (assembler) converte o Assembly em <strong>código objeto</strong> — bytes binários organizados em seções (código, dados, etc.). Ainda não é executável: faltam as referências a funções de outras bibliotecas.</p>
+
+        <h3>Passo 4 — Ligação (Linking)</h3>
+        <p>O ligador (linker) junta todos os arquivos objeto e as bibliotecas necessárias em um único <strong>binário executável</strong>. Para o ESP32, esse binário é um arquivo <code>.bin</code> ou <code>.elf</code> que será gravado na memória flash do microcontrolador.</p>
+
+        <h3>Passo 5 — Upload</h3>
+        <p>O PlatformIO conecta ao ESP32 via USB e grava o binário na memória flash. O microcontrolador reinicia e começa a executar o código imediatamente.</p>
+
+        <div class="callout">
+          <strong>Erros de compilação vs erros em tempo de execução:</strong> erros de sintaxe (falta um ponto e vírgula, chave não fechada) são detectados na compilação — antes de qualquer coisa rodar. Erros lógicos (divisão por zero, acesso fora de um array) ocorrem em tempo de execução. Compilação é um filtro poderoso, mas não pega tudo.
+        </div>
+
+        <h2>Variáveis e Tipos de Dados</h2>
+        <p>Uma variável é um <strong>espaço reservado na memória RAM</strong> com um nome que você escolhe. Quando você declara <code>int contador = 0;</code>, o compilador reserva 4 bytes na RAM, associa o nome <code>contador</code> a esse endereço e armazena o valor 0 lá.</p>
+        <p>Em C/C++, toda variável tem um <strong>tipo definido em tempo de compilação</strong>. O tipo determina: quantos bytes são usados, que valores cabem, que operações são permitidas. Você não pode guardar um número decimal em um <code>int</code> sem perda de informação.</p>
+
+        <h3>Tipos Inteiros</h3>
+        <pre>
+<span class="ty">int</span>           x = <span class="num">42</span>;        <span class="c">// 4 bytes — de -2.147.483.648 a +2.147.483.647</span>
+<span class="ty">unsigned int</span>  u = <span class="num">3000</span>;      <span class="c">// 4 bytes — de 0 a 4.294.967.295 (sem sinal)</span>
+<span class="ty">short</span>         s = <span class="num">-100</span>;     <span class="c">// 2 bytes — de -32.768 a +32.767</span>
+<span class="ty">long</span>          l = <span class="num">100000</span>;   <span class="c">// 4 bytes no ESP32 (mesmo que int)</span>
+<span class="ty">long long</span>     ll = <span class="num">9999999999</span>; <span class="c">// 8 bytes — números enormes</span></pre>
+
+        <h3>Tipos Inteiros de Tamanho Fixo (recomendados em embedded)</h3>
+        <p>No ESP32 e outros microcontroladores, o tamanho de <code>int</code> pode variar entre plataformas. Para ter certeza absoluta do tamanho, use os tipos fixos definidos em <code>&lt;stdint.h&gt;</code>:</p>
+        <pre>
+<span class="ty">uint8_t</span>   sensor_raw = <span class="num">200</span>;    <span class="c">// 1 byte sem sinal: 0 a 255</span>
+<span class="ty">int8_t</span>    erro_pequeno = <span class="num">-5</span>;   <span class="c">// 1 byte com sinal: -128 a 127</span>
+<span class="ty">uint16_t</span>  adc_leitura = <span class="num">3800</span>;  <span class="c">// 2 bytes sem sinal: 0 a 65.535</span>
+<span class="ty">int16_t</span>   posicao = <span class="num">-1500</span>;    <span class="c">// 2 bytes com sinal: -32.768 a 32.767</span>
+<span class="ty">uint32_t</span>  timestamp = <span class="num">12000000</span>; <span class="c">// 4 bytes: 0 a ~4.29 bilhões</span></pre>
+        <p>No firmware da Bia você vai encontrar muito <code>uint8_t</code> para valores de PWM (0–255), <code>uint16_t</code> para leituras ADC dos sensores (0–4095), e <code>uint32_t</code> para timestamps em microssegundos.</p>
+
+        <h3>Tipos Ponto Flutuante</h3>
+        <pre>
+<span class="ty">float</span>   kp = <span class="num">1.5f</span>;       <span class="c">// 4 bytes — ~7 dígitos de precisão</span>
+<span class="ty">double</span>  pi = <span class="num">3.14159265</span>; <span class="c">// 8 bytes — ~15 dígitos de precisão</span></pre>
+        <p><code>float</code> é o padrão em embedded — <code>double</code> usa o dobro de memória e no ESP32 não há unidade de ponto flutuante de dupla precisão (seria lento). Use sempre <code>float</code>. O sufixo <code>f</code> em <code>1.5f</code> indica explicitamente que é float, não double.</p>
+
+        <h3>Tipo Booleano</h3>
+        <pre>
+<span class="ty">bool</span>  calibrado   = <span class="kw">false</span>;   <span class="c">// falso</span>
+<span class="ty">bool</span>  motor_ligado = <span class="kw">true</span>;   <span class="c">// verdadeiro</span>
+<span class="c">// Em C, qualquer valor != 0 é considerado true</span>
+<span class="ty">bool</span>  resultado = (<span class="num">5</span> > <span class="num">3</span>);   <span class="c">// true, pois 5 > 3 é verdadeiro</span></pre>
+
+        <h3>Tipo Caractere</h3>
+        <pre>
+<span class="ty">char</span>  letra = <span class="str">'A'</span>;           <span class="c">// 1 byte — armazena um caractere ASCII</span>
+<span class="ty">char</span>  newline = <span class="str">'\n'</span>;        <span class="c">// caracteres especiais com barra invertida</span>
+<span class="c">// Strings são arrays de char terminados em '\0'</span>
+<span class="ty">char</span>  nome[] = <span class="str">"Phoenix"</span>;    <span class="c">// 8 bytes: P,h,o,e,n,i,x,\0</span></pre>
+
+        <h3>Constantes</h3>
+        <p>Constantes são valores que não mudam durante a execução. Há duas formas de defini-las:</p>
+        <pre>
+<span class="c">// 1. Usando const — tem tipo definido, checado pelo compilador (preferido)</span>
+<span class="kw">const</span> <span class="ty">int</span>   NUM_SENSORES = <span class="num">9</span>;
+<span class="kw">const</span> <span class="ty">float</span> PI_VALOR     = <span class="num">3.14159f</span>;
+
+<span class="c">// 2. Usando #define — substituição textual pelo preprocessador</span>
+#<span class="kw">define</span> MAX_PWM <span class="num">255</span>
+#<span class="kw">define</span> MOTOR_ESQUERDO <span class="num">16</span>   <span class="c">// pino GPIO do motor</span></pre>
+        <p>Prefira <code>const</code> — o compilador verifica o tipo e pode otimizar melhor. Use <code>#define</code> para números de pinos e macros do framework Arduino.</p>
+
+        <h3>Nomeando Variáveis</h3>
+        <p>Um bom nome de variável é autoexplicativo — quem lê o código entende sem precisar de comentário. Na Phoenix usamos <code>snake_case</code> (palavras separadas por underscore):</p>
+        <pre>
+<span class="c">// Ruim: o que é 'x'? o que é 'v'?</span>
+<span class="ty">float</span> x = <span class="num">0</span>;
+<span class="ty">int</span>   v = <span class="num">180</span>;
+
+<span class="c">// Bom: nomes longos são bem-vindos!</span>
+<span class="ty">float</span> posicao_normalizada = <span class="num">0</span>;
+<span class="ty">int</span>   velocidade_base_pwm = <span class="num">180</span>;
+<span class="ty">bool</span>  giroscopio_calibrado = <span class="kw">false</span>;</pre>
+
+        <h2>Operadores</h2>
+        <p>Operadores são os símbolos que realizam operações sobre variáveis e valores. C/C++ tem categorias bem definidas:</p>
+
+        <h3>Operadores Aritméticos</h3>
+        <pre>
+<span class="ty">int</span> a = <span class="num">10</span>, b = <span class="num">3</span>;
+<span class="ty">int</span> soma      = a + b;   <span class="c">// 13</span>
+<span class="ty">int</span> diferenca = a - b;   <span class="c">// 7</span>
+<span class="ty">int</span> produto   = a * b;   <span class="c">// 30</span>
+<span class="ty">int</span> quociente = a / b;   <span class="c">// 3  ← ATENÇÃO: divisão inteira!</span>
+<span class="ty">int</span> resto     = a % b;   <span class="c">// 1  (módulo: resto da divisão)</span></pre>
+
+        <div class="callout">
+          <strong>Armadilha — Divisão Inteira:</strong> quando dois <code>int</code> são divididos, o resultado é sempre inteiro (o decimal é descartado). <code>10 / 3 = 3</code>, não 3.333. Para obter o decimal, ao menos um dos operandos precisa ser float:<br><br>
+          <code>float resultado = (float)10 / 3;</code> → 3.333...<br>
+          <code>float resultado = 10.0f / 3;</code> → 3.333...<br><br>
+          Esse é um dos erros mais frequentes em C para quem vem de outras linguagens.
+        </div>
+
+        <h3>Type Casting — Conversão de Tipo</h3>
+        <p>Você pode forçar a conversão de um tipo para outro com cast:</p>
+        <pre>
+<span class="ty">int</span>   adc_leitura = <span class="num">3800</span>;
+<span class="ty">float</span> percentual  = (<span class="ty">float</span>)adc_leitura / <span class="num">4095.0f</span> * <span class="num">100.0f</span>;
+<span class="c">// Sem o (float), seria divisão inteira: 3800/4095 = 0!</span>
+
+<span class="ty">int</span> pwm_arredondado = (<span class="ty">int</span>)velocidade;  <span class="c">// corta o decimal: 180.9 → 180</span></pre>
+
+        <h3>Operadores de Atribuição Compostos</h3>
+        <pre>
+<span class="ty">int</span> contador = <span class="num">0</span>;
+contador += <span class="num">5</span>;   <span class="c">// equivale a: contador = contador + 5  → 5</span>
+contador -= <span class="num">2</span>;   <span class="c">// equivale a: contador = contador - 2  → 3</span>
+contador *= <span class="num">4</span>;   <span class="c">// equivale a: contador = contador * 4  → 12</span>
+contador /= <span class="num">3</span>;   <span class="c">// equivale a: contador = contador / 3  → 4</span>
+contador %= <span class="num">3</span>;   <span class="c">// equivale a: contador = contador % 3  → 1</span></pre>
+
+        <h3>Incremento e Decremento</h3>
+        <pre>
+<span class="ty">int</span> i = <span class="num">5</span>;
+i++;   <span class="c">// pós-incremento: usa i=5, depois vira 6</span>
+++i;   <span class="c">// pré-incremento: vira 7, depois usa i=7</span>
+i--;   <span class="c">// pós-decremento: usa i=7, depois vira 6</span>
+
+<span class="c">// Na prática, em loops simples a diferença não importa:</span>
+<span class="kw">for</span> (<span class="ty">int</span> j = <span class="num">0</span>; j < <span class="num">9</span>; j++) { <span class="c">/* j++ e ++j têm o mesmo efeito aqui */</span> }</pre>
+
+        <h3>Operadores de Comparação</h3>
+        <pre>
+<span class="ty">int</span> x = <span class="num">10</span>, y = <span class="num">5</span>;
+x == y   <span class="c">// false  — igual a?</span>
+x != y   <span class="c">// true   — diferente de?</span>
+x > y    <span class="c">// true   — maior que?</span>
+x < y    <span class="c">// false  — menor que?</span>
+x >= y   <span class="c">// true   — maior ou igual a?</span>
+x <= y   <span class="c">// false  — menor ou igual a?</span></pre>
+        <div class="callout">
+          <strong>Erro clássico — = vs ==:</strong> <code>=</code> é atribuição, <code>==</code> é comparação. Escrever <code>if (x = 5)</code> em vez de <code>if (x == 5)</code> não dá erro de compilação em C, mas o comportamento é completamente diferente: <code>x = 5</code> atribui 5 a x e retorna 5 (verdadeiro). O robô vai fazer coisas inesperadas. Sempre revise seus <code>if</code>s.
+        </div>
+
+        <h3>Operadores Lógicos</h3>
+        <pre>
+<span class="ty">bool</span> a = <span class="kw">true</span>, b = <span class="kw">false</span>;
+
+a && b   <span class="c">// false — AND: verdadeiro só se AMBOS forem verdadeiros</span>
+a || b   <span class="c">// true  — OR:  verdadeiro se PELO MENOS UM for verdadeiro</span>
+!a       <span class="c">// false — NOT: inverte o valor lógico</span>
+
+<span class="c">// Exemplo prático:</span>
+<span class="kw">if</span> (bateria_ok && sensores_calibrados) {
+    <span class="fn">iniciar_corrida</span>();
+}
+<span class="kw">if</span> (!linha_detectada || posicao > <span class="num">8000</span>) {
+    <span class="fn">parar_emergencia</span>();
+}</pre>
 
         <h2>Funções</h2>
-        <p>Funções são <strong>blocos de código reutilizáveis</strong>. Em vez de repetir o mesmo trecho 10 vezes, você cria uma função e chama ela quantas vezes quiser:</p>
+        <p>Funções são blocos de código com um nome, que você pode chamar de qualquer lugar do programa. Elas são o principal mecanismo de organização em C/C++. Sem funções, você teria que repetir o mesmo código em todos os lugares que precisasse dele — e se precisasse corrigir um bug, teria que corrigir em todos os lugares.</p>
+
+        <h3>Anatomia de uma função</h3>
         <pre>
-<span class="c">// Declara a função — tipo_retorno nome(parâmetros)</span>
-<span class="ty">int</span> <span class="fn">somar</span>(<span class="ty">int</span> a, <span class="ty">int</span> b) {
-    <span class="kw">return</span> a + b;
+<span class="c">// tipo_retorno  nome_da_funcao (tipo param1, tipo param2, ...)</span>
+<span class="ty">float</span>  <span class="fn">calcular_erro</span>(<span class="ty">float</span> posicao_atual, <span class="ty">float</span> posicao_alvo) {
+    <span class="ty">float</span> erro = posicao_atual - posicao_alvo;
+    <span class="kw">return</span> erro;  <span class="c">// retorna o resultado para quem chamou</span>
+}</pre>
+        <ul>
+          <li><strong>Tipo de retorno</strong> (<code>float</code>): o tipo do valor que a função devolve. Use <code>void</code> se não retornar nada.</li>
+          <li><strong>Nome</strong> (<code>calcular_erro</code>): o identificador. Use verbos que descrevem o que ela faz.</li>
+          <li><strong>Parâmetros</strong> (<code>float posicao_atual, float posicao_alvo</code>): os dados de entrada. São copiados — modificar o parâmetro dentro da função não afeta a variável original (passagem por valor).</li>
+          <li><strong>Corpo</strong>: o código entre chaves <code>{ }</code>.</li>
+          <li><strong>return</strong>: devolve o resultado e encerra a função imediatamente.</li>
+        </ul>
+
+        <h3>Funções void (sem retorno)</h3>
+        <pre>
+<span class="ty">void</span> <span class="fn">ligar_led</span>(<span class="ty">int</span> pino) {
+    <span class="fn">digitalWrite</span>(pino, HIGH);
+    <span class="c">// não precisa de return (pode ter um "return;" vazio para sair cedo)</span>
 }
 
-<span class="c">// Usando a função</span>
-<span class="ty">int</span> resultado = <span class="fn">somar</span>(<span class="num">3</span>, <span class="num">4</span>);  <span class="c">// resultado = 7</span></pre>
+<span class="ty">void</span> <span class="fn">parar_motores</span>() {   <span class="c">// zero parâmetros também é válido</span>
+    <span class="fn">analogWrite</span>(MOTOR_ESQ, <span class="num">0</span>);
+    <span class="fn">analogWrite</span>(MOTOR_DIR, <span class="num">0</span>);
+}</pre>
 
-        <p>Funções que não retornam nada usam o tipo <code>void</code>. É muito comum no Arduino: <code>void setup()</code> e <code>void loop()</code> são funções void obrigatórias.</p>
-
-        <h2>Condicionais (if / else / switch)</h2>
+        <h3>Protótipos (declaração antecipada)</h3>
+        <p>Em C/C++, você precisa declarar uma função antes de usá-la. Se <code>calcular_pid()</code> chama <code>ler_sensores()</code>, mas <code>ler_sensores</code> está definida depois no arquivo, o compilador vai reclamar. A solução é o <strong>protótipo</strong>: uma declaração sem corpo no topo do arquivo.</p>
         <pre>
+<span class="c">// Protótipos no topo — só a assinatura, sem o corpo</span>
+<span class="ty">float</span> <span class="fn">ler_posicao_linha</span>();
+<span class="ty">void</span>  <span class="fn">aplicar_motores</span>(<span class="ty">float</span> correcao);
+
+<span class="ty">void</span> <span class="fn">loop</span>() {
+    <span class="ty">float</span> pos = <span class="fn">ler_posicao_linha</span>();   <span class="c">// compila pois o protótipo já foi visto</span>
+    <span class="fn">aplicar_motores</span>(pos - <span class="num">4000</span>);
+}
+
+<span class="ty">float</span> <span class="fn">ler_posicao_linha</span>() { <span class="c">/* ... implementação ... */</span> }</pre>
+
+        <h3>Múltiplos parâmetros e múltiplos return</h3>
+        <pre>
+<span class="c">// Função com vários parâmetros</span>
+<span class="ty">int</span> <span class="fn">limitar</span>(<span class="ty">int</span> valor, <span class="ty">int</span> minimo, <span class="ty">int</span> maximo) {
+    <span class="kw">if</span> (valor < minimo) <span class="kw">return</span> minimo;
+    <span class="kw">if</span> (valor > maximo) <span class="kw">return</span> maximo;
+    <span class="kw">return</span> valor;
+}
+
+<span class="c">// Chamada:</span>
+<span class="ty">int</span> pwm = <span class="fn">limitar</span>(correcao_calculada, -<span class="num">255</span>, <span class="num">255</span>);</pre>
+
+        <h2>Escopo de Variáveis</h2>
+        <p>O <strong>escopo</strong> define onde uma variável existe e pode ser acessada. É delimitado pelos <code>{ }</code>.</p>
+
+        <h3>Variáveis locais</h3>
+        <pre>
+<span class="ty">void</span> <span class="fn">minha_funcao</span>() {
+    <span class="ty">int</span> local = <span class="num">10</span>;   <span class="c">// existe só dentro desta função</    >
+    <span class="c">// ...</span>
+}   <span class="c">// 'local' é destruída aqui</span>
+
+<span class="c">// Erro: 'local' não existe aqui fora</span>
+<span class="c">// int x = local;  → erro de compilação</span></pre>
+
+        <h3>Variáveis globais</h3>
+        <pre>
+<span class="c">// Declaradas fora de qualquer função — visíveis em todo o arquivo</span>
+<span class="ty">float</span> g_velocidade_base = <span class="num">180.0f</span>;  <span class="c">// prefixo g_ indica global</span>
+<span class="ty">bool</span>  g_corrida_ativa   = <span class="kw">false</span>;
+
+<span class="ty">void</span> <span class="fn">iniciar_corrida</span>() {
+    g_corrida_ativa = <span class="kw">true</span>;          <span class="c">// acessa a global</span>
+}
+
+<span class="ty">void</span> <span class="fn">loop</span>() {
+    <span class="kw">if</span> (g_corrida_ativa) { <span class="c">/* ... */</span> }
+}</pre>
+        <div class="callout">
+          <strong>Quando usar global vs local?</strong> Use <strong>local</strong> sempre que possível — a variável só existe onde é necessária e não pode ser modificada acidentalmente por outras funções. Use <strong>global</strong> para estado compartilhado entre múltiplas funções que precisam ler e escrever o mesmo valor — como o estado da corrida, os parâmetros do PID, a posição do robô.
+        </div>
+
+        <h3>Variável static local</h3>
+        <pre>
+<span class="c">// static local: existe para sempre, mas só é visível dentro da função</span>
+<span class="ty">void</span> <span class="fn">calcular_derivada</span>(<span class="ty">float</span> erro_atual) {
+    <span class="kw">static</span> <span class="ty">float</span> erro_anterior = <span class="num">0.0f</span>; <span class="c">// inicializada só uma vez</span>
+    <span class="ty">float</span> derivada = erro_atual - erro_anterior;
+    erro_anterior = erro_atual;         <span class="c">// salva para a próxima chamada</span>
+    <span class="kw">return</span>;
+}</pre>
+        <p>Static local é muito usado no firmware da Bia para manter estado entre chamadas sem usar variável global.</p>
+
+        <h2>Estruturas Condicionais</h2>
+        <p>Condicionais permitem que o programa tome decisões. Sem elas, o código executaria sempre as mesmas instruções na mesma ordem, independente de qualquer entrada.</p>
+
+        <h3>if simples</h3>
+        <pre>
+<span class="ty">float</span> tensao_bateria = <span class="fn">ler_bateria</span>();
+
+<span class="kw">if</span> (tensao_bateria < <span class="num">3.5f</span>) {
+    <span class="fn">Serial</span>.<span class="fn">println</span>(<span class="str">"ALERTA: bateria fraca!"</span>);
+    <span class="fn">parar_motores</span>();
+}</pre>
+
+        <h3>if / else</h3>
+        <pre>
+<span class="ty">float</span> posicao = <span class="fn">ler_posicao_linha</span>();
+
+<span class="kw">if</span> (posicao > <span class="num">4000</span>) {
+    <span class="c">// robô está à direita da linha → vira esquerda</span>
+    <span class="fn">ajustar_motores</span>(-<span class="num">50</span>);
+} <span class="kw">else</span> {
+    <span class="c">// robô está à esquerda da linha → vira direita</span>
+    <span class="fn">ajustar_motores</span>(<span class="num">50</span>);
+}</pre>
+
+        <h3>if / else if / else (cadeia)</h3>
+        <pre>
+<span class="ty">float</span> erro = posicao - <span class="num">4000.0f</span>;
+
+<span class="kw">if</span>      (erro > <span class="num">2000</span>)  { <span class="fn">ajustar_motores</span>(-<span class="num">200</span>); }  <span class="c">// muito à direita</span>
+<span class="kw">else if</span> (erro > <span class="num">500</span>)   { <span class="fn">ajustar_motores</span>(-<span class="num">80</span>); }   <span class="c">// levemente à direita</span>
+<span class="kw">else if</span> (erro > -<span class="num">500</span>)  { <span class="fn">ajustar_motores</span>(<span class="num">0</span>); }    <span class="c">// centrado — vai reto</span>
+<span class="kw">else if</span> (erro > -<span class="num">2000</span>) { <span class="fn">ajustar_motores</span>(<span class="num">80</span>); }    <span class="c">// levemente à esquerda</span>
+<span class="kw">else</span>                   { <span class="fn">ajustar_motores</span>(<span class="num">200</span>); }    <span class="c">// muito à esquerda</span></pre>
+
+        <h3>switch / case</h3>
+        <p>Quando você precisa comparar uma variável inteira com vários valores fixos, <code>switch</code> é mais legível que uma cadeia de <code>if/else if</code>:</p>
+        <pre>
+<span class="kw">switch</span> (modo_corrida) {
+    <span class="kw">case</span> MODO_LINE_FOLLOWER:
+        <span class="fn">run_pid_controller</span>();
+        <span class="kw">break</span>;   <span class="c">// OBRIGATÓRIO — sem break, executa o próximo case também!</span>
+
+    <span class="kw">case</span> MODO_VIRTUAL_LINE:
+        <span class="fn">run_pure_pursuit</span>();
+        <span class="kw">break</span>;
+
+    <span class="kw">case</span> MODO_PARADO:
+        <span class="fn">parar_motores</span>();
+        <span class="kw">break</span>;
+
+    <span class="kw">default</span>:   <span class="c">// executado se nenhum case combinar</span>
+        <span class="fn">Serial</span>.<span class="fn">println</span>(<span class="str">"Modo desconhecido!"</span>);
+        <span class="kw">break</span>;
+}</pre>
+
+        <h2>Laços de Repetição</h2>
+        <p>Loops permitem executar um bloco de código múltiplas vezes. São essenciais para percorrer arrays de sensores, aguardar condições, ou executar cálculos iterativos.</p>
+
+        <h3>while — enquanto a condição for verdadeira</h3>
+        <pre>
+<span class="c">// Aguarda calibração ser concluída</span>
+<span class="kw">while</span> (!<span class="fn">calibracao_concluida</span>()) {
+    <span class="fn">processar_calibracao</span>();
+    <span class="fn">delay</span>(<span class="num">10</span>);
+}
+
+<span class="c">// Loop infinito (comum em sistemas embarcados)</span>
+<span class="kw">while</span> (<span class="kw">true</span>) {
+    <span class="fn">executar_sistema</span>();
+}</pre>
+
+        <h3>for — ideal quando se sabe o número de iterações</h3>
+        <p>O <code>for</code> tem três partes separadas por ponto e vírgula:</p>
+        <pre>
+<span class="c">//      inicialização ; condição    ; incremento</span>
+<span class="kw">for</span> (<span class="ty">int</span> i = <span class="num">0</span>   ; i < NUM_SENSORES ; i++) {
+    leituras[i] = <span class="fn">analogRead</span>(pinos_sensores[i]);
+}
+
+<span class="c">// Equivalente em while — o for é apenas mais compacto:</span>
+<span class="ty">int</span> i = <span class="num">0</span>;
+<span class="kw">while</span> (i < NUM_SENSORES) {
+    leituras[i] = <span class="fn">analogRead</span>(pinos_sensores[i]);
+    i++;
+}</pre>
+
+        <h3>do-while — executa ao menos uma vez</h3>
+        <pre>
+<span class="c">// Lê sensor e repete se leitura for inválida</span>
+<span class="ty">int</span> leitura;
+<span class="kw">do</span> {
+    leitura = <span class="fn">analogRead</span>(SENSOR_FRENTE);
+} <span class="kw">while</span> (leitura < <span class="num">0</span> || leitura > <span class="num">4095</span>); <span class="c">// repete se inválido</span></pre>
+
+        <h3>break e continue</h3>
+        <pre>
+<span class="c">// break: interrompe o loop imediatamente</span>
+<span class="kw">for</span> (<span class="ty">int</span> i = <span class="num">0</span>; i < <span class="num">100</span>; i++) {
+    <span class="kw">if</span> (<span class="fn">linha_perdida</span>()) {
+        <span class="kw">break</span>;   <span class="c">// sai do loop agora</span>
+    }
+    <span class="fn">processar</span>(i);
+}
+
+<span class="c">// continue: pula para a próxima iteração</span>
+<span class="kw">for</span> (<span class="ty">int</span> i = <span class="num">0</span>; i < NUM_SENSORES; i++) {
+    <span class="kw">if</span> (leituras[i] < <span class="num">100</span>) {
+        <span class="kw">continue</span>;   <span class="c">// ignora sensores com leitura muito baixa</span>
+    }
+    <span class="fn">processar_sensor</span>(i);
+}</pre>
+
+        <h2>Arrays (Vetores)</h2>
+        <p>Um array é uma coleção de variáveis do <strong>mesmo tipo</strong> armazenadas em sequência na memória, acessadas por um índice numérico. Em C/C++, o primeiro elemento tem índice <strong>0</strong>.</p>
+
+        <h3>Declaração e acesso</h3>
+        <pre>
+<span class="c">// Declara array de 9 inteiros (não inicializado — lixo de memória!)</span>
+<span class="ty">int</span> leituras[<span class="num">9</span>];
+
+<span class="c">// Declara e inicializa</span>
+<span class="ty">int</span> pinos[<span class="num">9</span>] = {<span class="num">34</span>, <span class="num">35</span>, <span class="num">36</span>, <span class="num">37</span>, <span class="num">38</span>, <span class="num">39</span>, <span class="num">40</span>, <span class="num">41</span>, <span class="num">42</span>};
+
+<span class="c">// Acesso: índice 0 = primeiro elemento</span>
+leituras[<span class="num">0</span>] = <span class="fn">analogRead</span>(pinos[<span class="num">0</span>]);  <span class="c">// sensor mais à esquerda</span>
+leituras[<span class="num">8</span>] = <span class="fn">analogRead</span>(pinos[<span class="num">8</span>]);  <span class="c">// sensor mais à direita</span>
+
+<span class="c">// Percorrer com for é a forma natural:</span>
+<span class="kw">for</span> (<span class="ty">int</span> i = <span class="num">0</span>; i < <span class="num">9</span>; i++) {
+    leituras[i] = <span class="fn">analogRead</span>(pinos[i]);
+}</pre>
+
+        <div class="callout">
+          <strong>Perigo — acesso fora dos limites:</strong> acessar <code>leituras[9]</code> em um array de tamanho 9 é um comportamento indefinido — o programa lê ou escreve em memória que pertence a outra variável. C/C++ não checa limites automaticamente. Sempre garanta que seu índice está entre <code>0</code> e <code>tamanho-1</code>.
+        </div>
+
+        <h2>O Framework Arduino</h2>
+        <p>O Arduino não é só hardware — é também uma <strong>API de programação</strong> (um conjunto de funções) que simplifica o controle de microcontroladores. Na equipe, usamos o hardware do ESP32-S3, mas a linguagem e as funções são as mesmas do Arduino.</p>
+
+        <h3>Estrutura obrigatória: setup() e loop()</h3>
+        <pre>
+<span class="ty">void</span> <span class="fn">setup</span>() {
+    <span class="c">// Executa UMA VEZ ao ligar ou resetar</span>
+    <span class="c">// Aqui: configurar pinos, iniciar serial, calibrar sensores</span>
+    Serial.<span class="fn">begin</span>(<span class="num">115200</span>);                 <span class="c">// abre porta serial a 115200 baud</span>
+    <span class="fn">pinMode</span>(LED_BUILTIN, OUTPUT);         <span class="c">// configura pino como saída</span>
+    Serial.<span class="fn">println</span>(<span class="str">"Sistema iniciado!"</span>);
+}
+
+<span class="ty">void</span> <span class="fn">loop</span>() {
+    <span class="c">// Executa CONTINUAMENTE enquanto ligado</span>
+    <span class="c">// Aqui: ler sensores, calcular PID, mover motores</span>
+    <span class="ty">float</span> pos = <span class="fn">ler_posicao_linha</span>();
+    <span class="ty">float</span> correcao = <span class="fn">calcular_pid</span>(pos);
+    <span class="fn">mover_motores</span>(correcao);
+}</pre>
+
+        <h3>Pinos digitais</h3>
+        <pre>
+<span class="c">// Configura pino como entrada ou saída</span>
+<span class="fn">pinMode</span>(<span class="num">13</span>, OUTPUT);       <span class="c">// pino 13 como saída</span>
+<span class="fn">pinMode</span>(<span class="num">2</span>,  INPUT);        <span class="c">// pino 2 como entrada</span>
+<span class="fn">pinMode</span>(<span class="num">4</span>,  INPUT_PULLUP); <span class="c">// entrada com resistor pull-up interno</span>
+
+<span class="c">// Escrita digital — coloca o pino em HIGH (3.3V) ou LOW (0V)</span>
+<span class="fn">digitalWrite</span>(<span class="num">13</span>, HIGH);  <span class="c">// acende LED</span>
+<span class="fn">digitalWrite</span>(<span class="num">13</span>, LOW);   <span class="c">// apaga LED</span>
+
+<span class="c">// Leitura digital — retorna HIGH (1) ou LOW (0)</span>
+<span class="ty">int</span> estado = <span class="fn">digitalRead</span>(<span class="num">2</span>);
+<span class="kw">if</span> (estado == HIGH) { <span class="fn">Serial</span>.<span class="fn">println</span>(<span class="str">"Botão pressionado"</span>); }</pre>
+
+        <h3>Leitura analógica</h3>
+        <pre>
+<span class="c">// analogRead retorna 0 a 4095 (ADC de 12 bits no ESP32)</span>
+<span class="ty">int</span> valor_bruto = <span class="fn">analogRead</span>(<span class="num">34</span>);  <span class="c">// lê pino 34</span>
+<span class="c">// 0 = 0V, 4095 = 3.3V (tensão máxima)</span>
+
+<span class="c">// Converter para porcentagem:</span>
+<span class="ty">float</span> pct = (<span class="ty">float</span>)valor_bruto / <span class="num">4095.0f</span> * <span class="num">100.0f</span>;</pre>
+
+        <h3>Escrita analógica (PWM)</h3>
+        <pre>
+<span class="c">// analogWrite gera sinal PWM no pino — 0 a 255</span>
+<span class="fn">analogWrite</span>(<span class="num">16</span>, <span class="num">0</span>);    <span class="c">// motor parado</span>
+<span class="fn">analogWrite</span>(<span class="num">16</span>, <span class="num">128</span>);  <span class="c">// ~50% de velocidade</span>
+<span class="fn">analogWrite</span>(<span class="num">16</span>, <span class="num">255</span>);  <span class="c">// velocidade máxima</span>
+<span class="c">// No ESP32 com PlatformIO pode-se usar ledcWrite para mais controle</span></pre>
+
+        <h3>Tempo e temporização</h3>
+        <pre>
+<span class="c">// delay(ms) — bloqueia o programa por N milissegundos</span>
+<span class="fn">delay</span>(<span class="num">1000</span>);  <span class="c">// para TUDO por 1 segundo — evite em código de produção!</span>
+
+<span class="c">// millis() — milissegundos desde o boot (não bloqueia)</span>
+<span class="ty">uint32_t</span> agora = <span class="fn">millis</span>();
+
+<span class="c">// Padrão não-bloqueante: faz algo a cada 100ms</span>
+<span class="ty">static</span> <span class="ty">uint32_t</span> ultimo_envio = <span class="num">0</span>;
+<span class="kw">if</span> (<span class="fn">millis</span>() - ultimo_envio >= <span class="num">100</span>) {
+    <span class="fn">enviar_telemetria</span>();
+    ultimo_envio = <span class="fn">millis</span>();
+}
+
+<span class="c">// micros() — microssegundos (maior precisão)</span>
+<span class="ty">uint32_t</span> t_inicio = <span class="fn">micros</span>();
+<span class="fn">processar_algo</span>();
+<span class="ty">uint32_t</span> duracao = <span class="fn">micros</span>() - t_inicio;  <span class="c">// quanto tempo levou em µs</span></pre>
+
+        <div class="callout">
+          <strong>Por que evitar delay()?</strong> Enquanto o <code>delay()</code> está rodando, o microcontrolador não faz nada — não lê sensores, não responde a BLE, não processa nenhum outro código. No loop principal do robô (~2ms por ciclo), um único <code>delay(100)</code> destruiria completamente a performance. Use sempre <code>millis()</code> para temporizações não-bloqueantes.
+        </div>
+
+        <h3>Funções utilitárias do Arduino</h3>
+        <pre>
+<span class="c">// map — mapeia um valor de um intervalo para outro</span>
+<span class="ty">int</span> angulo = <span class="fn">map</span>(<span class="num">2048</span>, <span class="num">0</span>, <span class="num">4095</span>, <span class="num">0</span>, <span class="num">180</span>);  <span class="c">// retorna 90</span>
+<span class="c">// map(valor, fromLow, fromHigh, toLow, toHigh)</span>
+
+<span class="c">// constrain — limita um valor a um intervalo</span>
+<span class="ty">int</span> pwm = <span class="fn">constrain</span>(correcao, -<span class="num">255</span>, <span class="num">255</span>);  <span class="c">// não deixa sair de ±255</span>
+
+<span class="c">// abs — valor absoluto</span>
+<span class="ty">float</span> magnitude = <span class="fn">abs</span>(-<span class="num">3.14f</span>);  <span class="c">// 3.14</span>
+
+<span class="c">// max/min</span>
+<span class="ty">int</span> maior = <span class="fn">max</span>(<span class="num">10</span>, <span class="num">20</span>);  <span class="c">// 20</span>
+<span class="ty">int</span> menor = <span class="fn">min</span>(<span class="num">10</span>, <span class="num">20</span>);  <span class="c">// 10</span></pre>
+
+        <h3>Serial — depuração via cabo USB</h3>
+        <pre>
+<span class="ty">void</span> <span class="fn">setup</span>() {
+    Serial.<span class="fn">begin</span>(<span class="num">115200</span>);   <span class="c">// inicia comunicação serial a 115200 baud</span>
+}
+
+<span class="ty">void</span> <span class="fn">loop</span>() {
+    <span class="ty">float</span> pos = <span class="fn">ler_posicao</span>();
+
+    Serial.<span class="fn">print</span>(<span class="str">"pos: "</span>);       <span class="c">// imprime sem nova linha</span>
+    Serial.<span class="fn">println</span>(pos);         <span class="c">// imprime COM nova linha</span>
+    Serial.<span class="fn">printf</span>(<span class="str">"pos=%.2f erro=%.2f\n"</span>, pos, pos - <span class="num">4000</span>);  <span class="c">// formatado</span>
+}</pre>
+        <p>No PlatformIO, abra o monitor serial com o ícone de plugue elétrico (ou <code>pio device monitor</code> no terminal). Configure o baud rate para 115200.</p>
+
+        <h3>Juntando tudo: estrutura típica de um arquivo Arduino</h3>
+        <pre>
+<span class="c">// ── Includes ─────────────────────────────</span>
+#<span class="kw">include</span> <span class="str">&lt;Arduino.h&gt;</span>
+
+<span class="c">// ── Defines e constantes ─────────────────</span>
+#<span class="kw">define</span> MOTOR_ESQ <span class="num">16</span>
+#<span class="kw">define</span> MOTOR_DIR <span class="num">17</span>
+<span class="kw">const</span> <span class="ty">int</span> NUM_SENSORES = <span class="num">9</span>;
+
+<span class="c">// ── Variáveis globais ─────────────────────</span>
+<span class="ty">float</span>    g_kp = <span class="num">1.2f</span>;
+<span class="ty">float</span>    g_kd = <span class="num">6.0f</span>;
+<span class="ty">uint16_t</span> g_leituras[NUM_SENSORES];
+
+<span class="c">// ── Protótipos ────────────────────────────</span>
+<span class="ty">void</span>  <span class="fn">ler_sensores</span>();
+<span class="ty">float</span> <span class="fn">calcular_posicao</span>();
+<span class="ty">void</span>  <span class="fn">mover_motores</span>(<span class="ty">float</span> correcao);
+
+<span class="c">// ── Setup ─────────────────────────────────</span>
+<span class="ty">void</span> <span class="fn">setup</span>() {
+    Serial.<span class="fn">begin</span>(<span class="num">115200</span>);
+    <span class="fn">pinMode</span>(MOTOR_ESQ, OUTPUT);
+    <span class="fn">pinMode</span>(MOTOR_DIR, OUTPUT);
+    Serial.<span class="fn">println</span>(<span class="str">"Seguidor iniciado"</span>);
+}
+
+<span class="c">// ── Loop principal ────────────────────────</span>
+<span class="ty">void</span> <span class="fn">loop</span>() {
+    <span class="fn">ler_sensores</span>();
+    <span class="ty">float</span> pos = <span class="fn">calcular_posicao</span>();
+    <span class="ty">float</span> correcao = g_kp * (pos - <span class="num">4000</span>);
+    <span class="fn">mover_motores</span>(correcao);
+}
+
+<span class="c">// ── Implementações ────────────────────────</span>
+<span class="ty">void</span> <span class="fn">ler_sensores</span>() {
+    <span class="kw">for</span> (<span class="ty">int</span> i = <span class="num">0</span>; i < NUM_SENSORES; i++) {
+        g_leituras[i] = <span class="fn">analogRead</span>(<span class="num">34</span> + i);
+    }
+}
+
+<span class="ty">float</span> <span class="fn">calcular_posicao</span>() {
+    <span class="ty">float</span> soma_pesos = <span class="num">0</span>, soma_leituras = <span class="num">0</span>;
+    <span class="kw">for</span> (<span class="ty">int</span> i = <span class="num">0</span>; i < NUM_SENSORES; i++) {
+        soma_pesos    += (<span class="ty">float</span>)g_leituras[i] * (i * <span class="num">1000</span>);
+        soma_leituras += g_leituras[i];
+    }
+    <span class="kw">if</span> (soma_leituras == <span class="num">0</span>) <span class="kw">return</span> <span class="num">4000</span>;  <span class="c">// sem leitura → assume centro</span>
+    <span class="kw">return</span> soma_pesos / soma_leituras;
+}
+
+<span class="ty">void</span> <span class="fn">mover_motores</span>(<span class="ty">float</span> correcao) {
+    <span class="ty">int</span> esq = <span class="fn">constrain</span>(<span class="num">180</span> + (<span class="ty">int</span>)correcao, <span class="num">0</span>, <span class="num">255</span>);
+    <span class="ty">int</span> dir = <span class="fn">constrain</span>(<span class="num">180</span> - (<span class="ty">int</span>)correcao, <span class="num">0</span>, <span class="num">255</span>);
+    <span class="fn">analogWrite</span>(MOTOR_ESQ, esq);
+    <span class="fn">analogWrite</span>(MOTOR_DIR, dir);
+}</pre>
+
+        <!-- QUIZ -->
 <span class="kw">if</span> (posicao > <span class="num">4000</span>) {
     <span class="fn">virar_direita</span>();
 } <span class="kw">else if</span> (posicao < <span class="num">4000</span>) {
@@ -665,64 +1216,140 @@
 
       <div class="content">
         <h2>Git — Controle de Versão</h2>
-        <p>Git é um sistema que rastreia as mudanças no seu código ao longo do tempo. Pense nele como um "histórico com checkpoint" do seu projeto: você pode voltar a qualquer versão anterior, trabalhar em funcionalidades paralelas sem bagunçar o código principal e colaborar com a equipe.</p>
+        <p>Git é um sistema de controle de versão distribuído criado por Linus Torvalds em 2005 (o mesmo que criou o Linux). Ele rastreia <em>todas</em> as mudanças no seu código ao longo do tempo, com data, autor e mensagem explicativa. Pense nele como um "histórico com checkpoint" completo do projeto: você pode voltar a qualquer momento anterior, ver exatamente o que mudou e por quê, e trabalhar em múltiplas funcionalidades em paralelo sem interferir no código estável.</p>
 
         <h3>Conceitos fundamentais</h3>
         <ul>
-          <li><strong>Repositório:</strong> a pasta do projeto, com todo o histórico de mudanças.</li>
-          <li><strong>Commit:</strong> um snapshot salvo localmente. Como um "save game".</li>
-          <li><strong>Branch:</strong> uma linha de desenvolvimento paralela. Você cria uma branch para desenvolver uma feature sem afetar o código principal (<code>main</code>).</li>
-          <li><strong>Push:</strong> envia seus commits locais para o servidor (GitHub).</li>
-          <li><strong>Pull:</strong> baixa as últimas mudanças do servidor.</li>
+          <li><strong>Repositório (repo):</strong> a pasta do projeto com todo o histórico. Existe uma cópia local (no seu computador) e uma remota (no GitHub).</li>
+          <li><strong>Commit:</strong> um snapshot salvo localmente — como um "save game". Cada commit tem um ID único (hash), uma mensagem e um autor.</li>
+          <li><strong>Branch:</strong> uma linha de desenvolvimento paralela. A branch <code>main</code> é o código estável. Você cria branches para desenvolver features novas sem quebrar o que já funciona.</li>
+          <li><strong>Merge:</strong> une o conteúdo de uma branch na outra. Geralmente feito via Pull Request no GitHub.</li>
+          <li><strong>Push:</strong> envia seus commits locais para o GitHub.</li>
+          <li><strong>Pull:</strong> baixa e integra as últimas mudanças do GitHub para o seu computador.</li>
+          <li><strong>Clone:</strong> baixa um repositório remoto inteiro (com todo o histórico) pela primeira vez.</li>
         </ul>
 
-        <h3>Fluxo básico de trabalho</h3>
+        <h3>Comandos do dia a dia</h3>
         <pre>
-<span class="c"># 1. Baixar o repositório para sua máquina</span>
-git clone https://github.com/phoenix-unicamp/seguidor-linha.git
+<span class="c"># Ver o estado atual do repositório (o que mudou?)</span>
+git status
 
-<span class="c"># 2. Criar uma branch para sua feature</span>
-git checkout -b minha-feature
+<span class="c"># Ver o que exatamente mudou nos arquivos</span>
+git diff
 
-<span class="c"># 3. Editar código... depois salvar as mudanças</span>
+<span class="c"># Adicionar arquivos ao próximo commit (staging)</span>
 git add arquivo.cpp
-git commit -m "feat: adiciona calibração automática"
+git add src/              <span class="c"># adiciona uma pasta inteira</span>
 
-<span class="c"># 4. Enviar para o GitHub</span>
-git push origin minha-feature</pre>
+<span class="c"># Salvar um checkpoint local com mensagem descritiva</span>
+git commit -m "feat: adiciona calibração automática de sensores"
+
+<span class="c"># Ver histórico de commits</span>
+git log --oneline         <span class="c"># formato compacto</span></pre>
+
+        <h3>Trabalhando com branches</h3>
+        <pre>
+<span class="c"># Criar nova branch e mudar para ela</span>
+git checkout -b feature/pid-melhorado
+
+<span class="c"># Ver todas as branches</span>
+git branch
+
+<span class="c"># Mudar para outra branch existente</span>
+git checkout main
+
+<span class="c"># Enviar sua branch para o GitHub</span>
+git push origin feature/pid-melhorado</pre>
+
+        <h3>Fluxo completo de trabalho na equipe</h3>
+        <pre>
+<span class="c"># 1. Baixar o repositório pela primeira vez</span>
+git clone git@github.com:phoenix-unicamp/bia-senna-code-2026.git
+
+<span class="c"># 2. Criar sua branch para a feature</span>
+git checkout -b feature/nova-calibracao
+
+<span class="c"># 3. Escrever código... testar... quando estiver bom:</span>
+git add lib/line_sensors/line_sensors.cpp
+git commit -m "feat: calibracao adaptativa baseada em histograma"
+
+<span class="c"># 4. Enviar para GitHub e abrir Pull Request</span>
+git push origin feature/nova-calibracao
+<span class="c"># → Abra o GitHub, crie o PR, peça revisão ao time</span>
+
+<span class="c"># 5. Após aprovação, merge na main</span>
+git checkout main
+git pull origin main      <span class="c"># baixa a main atualizada</span></pre>
 
         <div class="callout">
-          <strong>Regra de ouro:</strong> nunca commite direto na branch <code>main</code>. Crie sempre uma branch, desenvolva, teste, depois faça um Pull Request para o time revisar.
+          <strong>Mensagens de commit:</strong> boas mensagens explicam o <em>porquê</em>, não o quê. "feat: adiciona timeout na leitura BLE para evitar travamento quando robô desconecta" é muito melhor que "atualiza bluetooth.cpp". Use prefixos: <code>feat:</code> (nova feature), <code>fix:</code> (correção de bug), <code>refactor:</code> (reorganização), <code>docs:</code> (documentação).
         </div>
 
-        <h2>PlatformIO — IDE para Embarcados</h2>
-        <p>O PlatformIO é uma ferramenta que roda dentro do VSCode e facilita muito o desenvolvimento para microcontroladores. Ele gerencia as bibliotecas, compila o código e faz o upload para o hardware automaticamente.</p>
+        <h3>.gitignore — o que NÃO versionar</h3>
+        <p>Alguns arquivos não devem entrar no repositório: arquivos temporários do build, configurações pessoais de IDE, credenciais. Crie um arquivo <code>.gitignore</code> na raiz do projeto:</p>
+        <pre>
+<span class="c"># PlatformIO build</span>
+.pio/
+.vscode/
 
-        <h3>Por que usar PlatformIO e não Arduino IDE?</h3>
+<span class="c"># Arquivos temporários</span>
+*.o
+*.d
+*.bin</pre>
+
+        <h2>PlatformIO — IDE para Embarcados</h2>
+        <p>O PlatformIO é uma extensão do VSCode (e também uma ferramenta de linha de comando) que foi criada especificamente para desenvolvimento de sistemas embarcados. Ele resolve três problemas que a Arduino IDE não resolve bem: gerenciamento de dependências, suporte a plataformas diversas (ESP32, STM32, AVR, etc.) e integração com Git e ferramentas profissionais.</p>
+
+        <h3>Por que PlatformIO e não Arduino IDE?</h3>
         <ul>
-          <li>Gerenciamento de dependências via <code>platformio.ini</code></li>
-          <li>Suporte nativo ao ESP32-S3 (chip do nosso robô)</li>
-          <li>Integração com Git e VSCode</li>
-          <li>Build system mais rápido e configurável</li>
+          <li><strong>Gerenciamento de bibliotecas:</strong> as dependências ficam declaradas no <code>platformio.ini</code> e são baixadas automaticamente. Em qualquer máquina, <code>pio run</code> baixa tudo e compila.</li>
+          <li><strong>Suporte ao ESP32-S3:</strong> suporte nativo e atualizado ao chip da Bia.</li>
+          <li><strong>Integração com VSCode:</strong> autocomplete, navegação de código, debugging integrado.</li>
+          <li><strong>Build system robusto:</strong> compila apenas o que mudou, muito mais rápido.</li>
+          <li><strong>Múltiplos ambientes:</strong> você pode ter um <code>env:debug</code> com flags de debug e um <code>env:release</code> otimizado no mesmo projeto.</li>
         </ul>
 
-        <h3>Arquivo platformio.ini (exemplo da Bia)</h3>
+        <h3>Estrutura de um projeto PlatformIO</h3>
         <pre>
-[env:esp32s3]
-platform  = espressif32
-board     = esp32-s3-devkitc-1
-framework = arduino
+meu-seguidor/
+├── platformio.ini      <span class="c"># configuração do projeto</span>
+├── src/
+│   └── main.cpp        <span class="c"># código principal (substitui o .ino)</span>
+├── lib/
+│   ├── pid/            <span class="c"># suas bibliotecas locais</span>
+│   └── sensores/
+├── include/
+│   └── config.h        <span class="c"># defines e constantes globais</span>
+└── test/               <span class="c"># testes unitários (opcional)</span></pre>
+
+        <h3>Arquivo platformio.ini — exemplo da Bia</h3>
+        <pre>
+[env:bia-esp32s3]
+platform       = espressif32
+board          = esp32-s3-devkitc-1
+framework      = arduino
+monitor_speed  = 115200       <span class="c"># baud rate do serial monitor</span>
+upload_speed   = 921600       <span class="c"># velocidade de upload</span>
+
+build_flags    =
+    -DCORE_DEBUG_LEVEL=0      <span class="c"># desliga logs internos do ESP32</span>
+    -O2                       <span class="c"># otimização de código</span>
 
 lib_deps =
-    bluetooth
-    ESP32Encoder</pre>
+    ESP32Encoder              <span class="c"># biblioteca do encoder de roda</span>
+    MPU6050                   <span class="c"># biblioteca do giroscópio</span></pre>
 
-        <h3>Comandos essenciais</h3>
+        <h3>Ações principais na interface</h3>
         <ul>
-          <li><strong>Build (✓):</strong> compila o projeto, verifica erros</li>
-          <li><strong>Upload (→):</strong> compila e grava no microcontrolador via USB</li>
-          <li><strong>Monitor (🔌):</strong> abre o terminal Serial para ver logs do robô</li>
+          <li><strong>Build (ícone ✓):</strong> compila o projeto completo. Mostra erros e warnings. Use frequentemente para detectar erros cedo.</li>
+          <li><strong>Upload (ícone →):</strong> compila e grava o binário no ESP32 via USB. O robô reinicia automaticamente com o novo firmware.</li>
+          <li><strong>Serial Monitor (ícone plugue):</strong> abre terminal para ver as saídas <code>Serial.println()</code> do robô em tempo real. Essencial para depuração.</li>
+          <li><strong>Clean:</strong> apaga os arquivos compilados — use quando surgem erros estranhos após mudanças grandes.</li>
         </ul>
+
+        <div class="callout">
+          <strong>Dica de workflow:</strong> sempre compile antes de fazer upload. Se houver erro de compilação, o upload nem tenta. Mantenha o Serial Monitor aberto durante testes — você verá imediatamente o que o robô está fazendo e qualquer mensagem de erro que você colocou com <code>Serial.println()</code>.
+        </div>
 
         <!-- QUIZ -->
         <div class="quiz-section">
@@ -752,43 +1379,105 @@ lib_deps =
 
       <div class="content">
         <h2>O Sensor Óptico-Reflexivo</h2>
-        <p>Os sensores de linha do robô são <strong>pares óptico-reflexivos</strong>: cada sensor contém um LED emissor de luz infravermelha e um fototransistor receptor. O LED emite luz; o fototransistor mede quanta luz voltou refletida da superfície abaixo.</p>
+        <p>Os sensores de linha são <strong>pares óptico-reflexivos</strong> — dispositivos que combinam um emissor e um receptor de luz em um único encapsulamento. O emissor é um LED de infravermelho (IR, ~950nm, invisível ao olho humano). O receptor é um fototransistor que varia sua condutância elétrica de acordo com a intensidade da luz IR que recebe.</p>
+        <p>O princípio de funcionamento é simples: o LED emite luz para baixo. Parte dessa luz é refletida pela superfície sob o sensor e volta ao fototransistor. Quanto mais luz retorna, maior a tensão na saída do sensor — e essa tensão é lida pelo ADC do microcontrolador via <code>analogRead()</code>.</p>
 
-        <h3>Por que funciona em preto e branco?</h3>
-        <p>Superfícies <strong>brancas</strong> refletem quase toda a luz → fototransistor recebe muito → tensão alta → <code>analogRead()</code> retorna valor alto (~3000–4095).</p>
-        <p>Superfícies <strong>pretas</strong> absorvem quase toda a luz → fototransistor recebe pouco → tensão baixa → <code>analogRead()</code> retorna valor baixo (~0–500).</p>
+        <h3>O contraste de reflexão: preto vs branco</h3>
+        <p>A chave do funcionamento está nas propriedades ópticas das cores:</p>
+        <ul>
+          <li>Superfícies <strong>brancas</strong> são altamente reflexivas → devolvem ~80-90% da luz IR → fototransistor recebe muito → tensão alta → <code>analogRead()</code> retorna ~3000–4095</li>
+          <li>Superfícies <strong>pretas</strong> são absorvedoras → devolvem ~5-10% da luz IR → fototransistor recebe pouco → tensão baixa → <code>analogRead()</code> retorna ~50–400</li>
+        </ul>
+        <p>A diferença entre os dois extremos (chamada de "swing" do sensor) tipicamente fica entre 2000 e 3500 unidades de ADC. É essa diferença que permite detectar a linha.</p>
 
         <div class="callout">
-          Por isso a pista precisa de <strong>alto contraste</strong>. Sem ele, o sensor não consegue distinguir linha de superfície.
+          <strong>Dependência da iluminação ambiente:</strong> luz fluorescente e luz solar direta emitem IR e afetam as leituras. Em competições, o ambiente de iluminação varia muito. Por isso a <strong>calibração</strong> antes de cada corrida é obrigatória — ela ajusta os valores de referência para as condições do momento.
         </div>
 
-        <h2>Array de Sensores</h2>
-        <p>Um único sensor diz apenas "tem linha aqui ou não". Para saber <em>onde</em> na pista o robô está, usamos vários sensores em linha horizontal (S0, S1, … S8). A Bia tem 9 sensores frontais.</p>
+        <h3>Por que múltiplos sensores?</h3>
+        <p>Um único sensor diz apenas "tem linha aqui?" — sim ou não. Com um único sensor, você só sabe se o robô está ou não sobre a linha, sem saber <em>o quanto</em> ele desviou nem para qual lado. Isso é informação insuficiente para um controlador.</p>
+        <p>Com 9 sensores em linha horizontal, você tem um "campo de visão" que cobre toda a largura da linha mais uma margem de cada lado. Cada sensor reporta a intensidade da reflexão naquele ponto, e a combinação das 9 leituras permite calcular a posição da linha com <strong>resolução sub-sensor</strong>.</p>
 
-        <h2>Lendo Posição com Média Ponderada</h2>
-        <p>Cada sensor tem uma posição fixa no array. Para converter 9 leituras em <strong>uma única posição contínua</strong>, usamos média ponderada:</p>
+        <h2>Lendo os Sensores em Código</h2>
         <pre>
-<span class="c">// Sensores: S0=0, S1=1000, S2=2000, ... S8=8000</span>
-<span class="c">// 4000 = centro da pista</span>
+<span class="kw">const</span> <span class="ty">int</span> NUM_SENSORES = <span class="num">9</span>;
+<span class="kw">const</span> <span class="ty">int</span> PINOS[NUM_SENSORES] = {<span class="num">34</span>,<span class="num">35</span>,<span class="num">36</span>,<span class="num">37</span>,<span class="num">38</span>,<span class="num">39</span>,<span class="num">40</span>,<span class="num">41</span>,<span class="num">42</span>};
+<span class="ty">uint16_t</span> g_leituras[NUM_SENSORES];
 
-<span class="ty">float</span> soma_pesos = <span class="num">0</span>;
-<span class="ty">float</span> soma_leituras = <span class="num">0</span>;
-
-<span class="kw">for</span> (<span class="ty">int</span> i = <span class="num">0</span>; i < NUM_SENSORES; i++) {
-    soma_pesos    += leitura[i] * (i * <span class="num">1000.0f</span>);
-    soma_leituras += leitura[i];
+<span class="ty">void</span> <span class="fn">ler_todos_sensores</span>() {
+    <span class="kw">for</span> (<span class="ty">int</span> i = <span class="num">0</span>; i < NUM_SENSORES; i++) {
+        g_leituras[i] = (<span class="ty">uint16_t</span>)<span class="fn">analogRead</span>(PINOS[i]);
+    }
 }
 
-<span class="ty">float</span> posicao = soma_pesos / soma_leituras;  <span class="c">// 0 a 8000</span></pre>
+<span class="c">// Exemplo de leituras com robô centralizado na linha branca sobre preto:</span>
+<span class="c">// S0=80  S1=90  S2=100 S3=400 S4=3800 S5=420 S6=110 S7=95  S8=85</span>
+<span class="c">//                      ← baixo reflexo →  ALTO  ← baixo reflexo →</span></pre>
 
-        <p>Resultado: posição <strong>0</strong> = robô na extrema esquerda, <strong>4000</strong> = centro, <strong>8000</strong> = extrema direita. O erro é <code>posicao - 4000</code>.</p>
-
-        <h2>Calibração</h2>
-        <p>Os valores brutos variam por iluminação e variações de hardware. A calibração resolve isso: o robô passa os sensores sobre branco puro e preto puro, salva os extremos, e depois normaliza tudo para 0–100%.</p>
+        <h2>Calculando a Posição com Média Ponderada</h2>
+        <p>A sacada da média ponderada é tratar cada sensor como um "peso" que atrai o resultado para sua posição. Atribuímos posições fixas: S0=0, S1=1000, S2=2000, ..., S8=8000. O centro da pista é 4000.</p>
+        <p>A fórmula: <strong>posição = (soma de leitura_i × posição_i) / (soma de leitura_i)</strong></p>
+        <p>Quando a linha está sob S4 (posição 4000), a leitura de S4 é alta e "puxa" o resultado para 4000. Quando a linha está entre S3 e S4, as leituras intermediárias dos dois sensores geram um valor entre 3000 e 4000 — você obtém precisão contínua, não apenas 9 posições discretas.</p>
         <pre>
-<span class="c">// Após calibração: normaliza para 0-1000</span>
-<span class="ty">int</span> <span class="fn">normalizar</span>(<span class="ty">int</span> raw, <span class="ty">int</span> minVal, <span class="ty">int</span> maxVal) {
-    <span class="kw">return</span> map(raw, minVal, maxVal, <span class="num">0</span>, <span class="num">1000</span>);
+<span class="ty">float</span> <span class="fn">calcular_posicao</span>() {
+    <span class="ty">float</span> soma_ponderada = <span class="num">0.0f</span>;
+    <span class="ty">float</span> soma_leituras  = <span class="num">0.0f</span>;
+
+    <span class="kw">for</span> (<span class="ty">int</span> i = <span class="num">0</span>; i < NUM_SENSORES; i++) {
+        soma_ponderada += (<span class="ty">float</span>)g_leituras[i] * (i * <span class="num">1000.0f</span>);
+        soma_leituras  += (<span class="ty">float</span>)g_leituras[i];
+    }
+
+    <span class="kw">if</span> (soma_leituras < <span class="num">200.0f</span>) {
+        <span class="kw">return</span> -<span class="num">1.0f</span>;  <span class="c">// linha não detectada — todos sensores no preto</span>
+    }
+
+    <span class="kw">return</span> soma_ponderada / soma_leituras;  <span class="c">// 0 a 8000</span>
+}
+
+<span class="c">// Exemplos numéricos:</span>
+<span class="c">// S4=3800, demais≈0  → pos = (3800×4000)/3800 = 4000 (centro exato)</span>
+<span class="c">// S3=2300, S4=1500   → pos = (2300×3000 + 1500×4000)/(2300+1500) = 3447 (entre S3 e S4)</span></pre>
+
+        <h2>Calibração dos Sensores</h2>
+        <p>As leituras brutas dos sensores variam com a iluminação ambiente, distância ao chão, envelhecimento dos LEDs e diferenças de fabricação. A calibração resolve isso capturando os valores extremos e normalizando tudo para uma escala padrão.</p>
+
+        <h3>Algoritmo de calibração</h3>
+        <pre>
+<span class="ty">uint16_t</span> g_cal_min[NUM_SENSORES];  <span class="c">// mínimo (leitura sobre PRETO)</span>
+<span class="ty">uint16_t</span> g_cal_max[NUM_SENSORES];  <span class="c">// máximo (leitura sobre BRANCO)</span>
+
+<span class="ty">void</span> <span class="fn">iniciar_calibracao</span>() {
+    <span class="kw">for</span> (<span class="ty">int</span> i = <span class="num">0</span>; i < NUM_SENSORES; i++) {
+        g_cal_min[i] = <span class="num">4095</span>;   <span class="c">// começa com o máximo possível</span>
+        g_cal_max[i] = <span class="num">0</span>;      <span class="c">// começa com o mínimo possível</span>
+    }
+}
+
+<span class="ty">void</span> <span class="fn">amostrar_calibracao</span>() {
+    <span class="kw">for</span> (<span class="ty">int</span> i = <span class="num">0</span>; i < NUM_SENSORES; i++) {
+        <span class="ty">uint16_t</span> leitura = (<span class="ty">uint16_t</span>)<span class="fn">analogRead</span>(PINOS[i]);
+        <span class="kw">if</span> (leitura < g_cal_min[i]) g_cal_min[i] = leitura;
+        <span class="kw">if</span> (leitura > g_cal_max[i]) g_cal_max[i] = leitura;
+    }
+}
+
+<span class="c">// Normaliza leitura bruta para 0-1000 usando os extremos calibrados</span>
+<span class="ty">int</span> <span class="fn">normalizar</span>(<span class="ty">int</span> i, <span class="ty">uint16_t</span> raw) {
+    <span class="ty">int</span> span = g_cal_max[i] - g_cal_min[i];
+    <span class="kw">if</span> (span < <span class="num">100</span>) <span class="kw">return</span> <span class="num">0</span>;  <span class="c">// sensor sem contraste — ignora</span>
+    <span class="ty">int</span> norm = (<span class="ty">int</span>)((<span class="ty">float</span>)(raw - g_cal_min[i]) / span * <span class="num">1000</span>);
+    <span class="kw">return</span> <span class="fn">constrain</span>(norm, <span class="num">0</span>, <span class="num">1000</span>);
+}</pre>
+
+        <h3>Detecção de linha perdida</h3>
+        <pre>
+<span class="ty">bool</span> <span class="fn">linha_detectada</span>() {
+    <span class="kw">for</span> (<span class="ty">int</span> i = <span class="num">0</span>; i < NUM_SENSORES; i++) {
+        <span class="c">// Se qualquer sensor lê acima de 500 → há linha em algum lugar</span>
+        <span class="kw">if</span> (<span class="fn">normalizar</span>(i, g_leituras[i]) > <span class="num">500</span>) <span class="kw">return</span> <span class="kw">true</span>;
+    }
+    <span class="kw">return</span> <span class="kw">false</span>;  <span class="c">// todos sensores sobre preto → linha perdida</span>
 }</pre>
 
         <!-- QUIZ -->
@@ -818,54 +1507,92 @@ lib_deps =
       </div>
 
       <div class="content">
-        <h2>PWM — Controlando Velocidade</h2>
-        <p><strong>PWM</strong> (Pulse Width Modulation) é a técnica usada para controlar a velocidade dos motores. Em vez de alterar a tensão, o sinal alterna entre ligado e desligado muito rapidamente. O motor "vê" uma tensão média proporcional ao tempo ligado:</p>
+        <h2>PWM — Controlando a Velocidade dos Motores</h2>
+        <p>Motores DC funcionam com tensão contínua: tensão máxima = velocidade máxima. Mas como variar a velocidade sem um conversor de tensão analógico (que seria caro e ineficiente)? A resposta é o <strong>PWM — Pulse Width Modulation</strong> (Modulação por Largura de Pulso).</p>
+        <p>Em vez de mudar a tensão, o PWM liga e desliga o sinal em alta frequência (~20kHz no ESP32). O motor possui inércia mecânica suficiente para não "perceber" as oscilações — ele integra o sinal e reage à <strong>tensão média</strong>. O parâmetro que controlamos é o <strong>duty cycle</strong>: a porcentagem do tempo em que o sinal está em HIGH.</p>
         <ul>
-          <li>50% duty cycle → ~50% da velocidade máxima</li>
-          <li>100% duty cycle → velocidade máxima</li>
-          <li>0% duty cycle → motor parado</li>
+          <li><strong>0% duty cycle:</strong> sinal sempre LOW → tensão média = 0V → motor parado</li>
+          <li><strong>50% duty cycle:</strong> metade do tempo HIGH → tensão média = metade do máximo → ~50% da velocidade</li>
+          <li><strong>100% duty cycle:</strong> sinal sempre HIGH → tensão média = máxima → velocidade máxima</li>
         </ul>
         <pre>
-<span class="c">// analogWrite envia PWM para o motor (0-255 no Arduino)</span>
-<span class="fn">analogWrite</span>(MOTOR_ESQUERDO, <span class="num">180</span>);   <span class="c">// ~70% de velocidade</span>
-<span class="fn">analogWrite</span>(MOTOR_DIREITO,   <span class="num">180</span>);   <span class="c">// igual → vai reto</span></pre>
+<span class="c">// analogWrite: 0=parado, 255=máximo (mapeado para 0-100% duty cycle)</span>
+<span class="fn">analogWrite</span>(MOTOR_ESQUERDO, <span class="num">0</span>);    <span class="c">// parado</span>
+<span class="fn">analogWrite</span>(MOTOR_ESQUERDO, <span class="num">128</span>);  <span class="c">// ~50% de velocidade</span>
+<span class="fn">analogWrite</span>(MOTOR_ESQUERDO, <span class="num">255</span>);  <span class="c">// velocidade máxima</span>
 
-        <h2>Controle Diferencial</h2>
-        <p>O robô não tem volante — ele vira <strong>diferenciando a velocidade dos dois motores</strong>. Motor esquerdo mais rápido que o direito → vira à direita. Motor direito mais rápido → vira à esquerda.</p>
+<span class="c">// Ambos iguais → robô vai reto</span>
+<span class="fn">analogWrite</span>(MOTOR_ESQUERDO, <span class="num">180</span>);
+<span class="fn">analogWrite</span>(MOTOR_DIREITO,  <span class="num">180</span>);</pre>
+
+        <h2>O Driver de Motor — H-Bridge</h2>
+        <p>O microcontrolador não pode alimentar o motor diretamente — a corrente necessária (centenas de mA) destruiria os pinos GPIO. Por isso usamos um <strong>driver de motor</strong>, tipicamente um H-bridge (ponte H).</p>
+        <p>O H-bridge é um circuito que pode conectar o motor na direção desejada (frente ou ré) com corrente vinda de uma fonte separada (a bateria do robô). O ESP32 envia apenas o sinal de controle; toda a potência vem da bateria. No firmware, você controla direção com dois pinos digitais e velocidade com o PWM.</p>
         <pre>
-<span class="c">// Para virar à direita: motor esquerdo mais rápido</span>
-<span class="fn">analogWrite</span>(MOTOR_ESQUERDO, <span class="num">220</span>);
-<span class="fn">analogWrite</span>(MOTOR_DIREITO,  <span class="num">120</span>);</pre>
+<span class="c">// Esquema típico: INA/INB controlam direção, PWM controla velocidade</span>
+<span class="fn">digitalWrite</span>(MOTOR_ESQ_INA, HIGH);
+<span class="fn">digitalWrite</span>(MOTOR_ESQ_INB, LOW);   <span class="c">// direção: frente</span>
+<span class="fn">analogWrite</span> (MOTOR_ESQ_PWM, <span class="num">180</span>);  <span class="c">// velocidade</span></pre>
 
-        <h2>Seguindo com If/Else</h2>
-        <p>A primeira tentativa de seguir a linha é usar if/else baseado nos sensores:</p>
+        <h2>Controle Diferencial — como o robô vira</h2>
+        <p>O robô seguidor não tem volante nem servo. Ele gira diferenciando a velocidade dos dois motores — assim como um tanque de guerra. Este princípio chama-se <strong>acionamento diferencial</strong>.</p>
+        <ul>
+          <li><strong>Ambos motores mesma velocidade:</strong> robô vai reto</li>
+          <li><strong>Motor esquerdo mais rápido:</strong> robô gira para a direita (o lado mais lento "arrasta")</li>
+          <li><strong>Motor direito mais rápido:</strong> robô gira para a esquerda</li>
+          <li><strong>Velocidades opostas:</strong> robô gira no próprio eixo (pirouette)</li>
+        </ul>
         <pre>
-<span class="ty">int</span> pos = <span class="fn">ler_posicao</span>();
+<span class="c">// Traduzindo: correction > 0 significa "desviei para a direita"</span>
+<span class="c">// → preciso girar à esquerda → motor esquerdo desacelera, direito acelera</span>
+<span class="ty">void</span> <span class="fn">aplicar_motores</span>(<span class="ty">int</span> vel_base, <span class="ty">float</span> correcao) {
+    <span class="ty">int</span> esq = <span class="fn">constrain</span>(vel_base - (<span class="ty">int</span>)correcao, <span class="num">0</span>, <span class="num">255</span>);
+    <span class="ty">int</span> dir = <span class="fn">constrain</span>(vel_base + (<span class="ty">int</span>)correcao, <span class="num">0</span>, <span class="num">255</span>);
+    <span class="fn">analogWrite</span>(MOTOR_ESQ_PWM, esq);
+    <span class="fn">analogWrite</span>(MOTOR_DIR_PWM, dir);
+}</pre>
 
-<span class="kw">if</span> (pos > <span class="num">4500</span>) {
-    <span class="c">// Robô desviou para a direita → virar esquerda</span>
-    <span class="fn">analogWrite</span>(MOTOR_ESQUERDO, <span class="num">120</span>);
-    <span class="fn">analogWrite</span>(MOTOR_DIREITO,  <span class="num">220</span>);
-} <span class="kw">else if</span> (pos < <span class="num">3500</span>) {
-    <span class="c">// Robô desviou para a esquerda → virar direita</span>
-    <span class="fn">analogWrite</span>(MOTOR_ESQUERDO, <span class="num">220</span>);
-    <span class="fn">analogWrite</span>(MOTOR_DIREITO,  <span class="num">120</span>);
+        <h2>Controle por if/else — a primeira tentativa</h2>
+        <p>A estratégia mais intuitiva para seguir a linha é usar condicionais baseados na posição dos sensores. Você define zonas e determina o que fazer em cada uma:</p>
+        <pre>
+<span class="ty">float</span> posicao = <span class="fn">calcular_posicao</span>();  <span class="c">// 0 a 8000, 4000=centro</span>
+
+<span class="kw">if</span> (posicao > <span class="num">5000</span>) {
+    <span class="c">// Muito à direita da linha → vira agressivamente à esquerda</span>
+    <span class="fn">analogWrite</span>(MOTOR_ESQ_PWM, <span class="num">100</span>);
+    <span class="fn">analogWrite</span>(MOTOR_DIR_PWM, <span class="num">220</span>);
+} <span class="kw">else if</span> (posicao > <span class="num">4200</span>) {
+    <span class="c">// Levemente à direita → correção suave</span>
+    <span class="fn">analogWrite</span>(MOTOR_ESQ_PWM, <span class="num">150</span>);
+    <span class="fn">analogWrite</span>(MOTOR_DIR_PWM, <span class="num">200</span>);
+} <span class="kw">else if</span> (posicao >= <span class="num">3800</span>) {
+    <span class="c">// Centrado → vai reto na velocidade base</span>
+    <span class="fn">analogWrite</span>(MOTOR_ESQ_PWM, <span class="num">180</span>);
+    <span class="fn">analogWrite</span>(MOTOR_DIR_PWM, <span class="num">180</span>);
+} <span class="kw">else if</span> (posicao >= <span class="num">3000</span>) {
+    <span class="fn">analogWrite</span>(MOTOR_ESQ_PWM, <span class="num">200</span>);
+    <span class="fn">analogWrite</span>(MOTOR_DIR_PWM, <span class="num">150</span>);
 } <span class="kw">else</span> {
-    <span class="fn">analogWrite</span>(MOTOR_ESQUERDO, <span class="num">180</span>);
-    <span class="fn">analogWrite</span>(MOTOR_DIREITO,  <span class="num">180</span>);
+    <span class="fn">analogWrite</span>(MOTOR_ESQ_PWM, <span class="num">220</span>);
+    <span class="fn">analogWrite</span>(MOTOR_DIR_PWM, <span class="num">100</span>);
 }</pre>
 
         <div class="callout">
-          <strong>Problema:</strong> o controle if/else é "tudo ou nada". O robô alterna abruptamente entre "vira muito" e "vai reto", causando zigue-zague. Para velocidades maiores, isso é catastrófico. A solução é o controle contínuo — PID.
+          <strong>O problema fundamental do if/else:</strong> o controle é <em>discreto</em> — ele salta entre valores fixos de correção. Quando o robô está no limite entre duas zonas (posição oscilando entre 4199 e 4201), ele alterna abruptamente entre duas correções diferentes a cada ciclo. O resultado é zigue-zague. Em velocidades baixas (≤ 1m/s) isso funciona. Em velocidades de competição (3-5m/s), o robô oscila e perde a linha. O próximo módulo apresenta a solução: o controlador PD.
         </div>
 
-        <h2>Normalização da Posição</h2>
-        <p>Antes de enviar para o controlador, normalizamos a posição para uma escala centrada em zero (erro = posição − centro):</p>
+        <h2>Erro de Posição — Preparando para o PID</h2>
+        <p>O controlador PID trabalha com uma grandeza chamada <strong>erro</strong>: a diferença entre onde o robô está e onde deveria estar (o centro da linha, posição 4000).</p>
         <pre>
-<span class="c">// Erro centralizado: -4000 a +4000, sendo 0 = centrado</span>
-<span class="ty">float</span> erro = posicao_normalizada - <span class="num">4000.0f</span>;
+<span class="c">// Erro positivo = robô desviou para a direita da linha</span>
+<span class="c">// Erro negativo = robô desviou para a esquerda da linha</span>
+<span class="c">// Erro zero = robô perfeitamente centrado</span>
+<span class="ty">float</span> erro = <span class="fn">calcular_posicao</span>() - <span class="num">4000.0f</span>;
 
-<span class="c">// Positivo = desvio para a direita, negativo = para a esquerda</span></pre>
+<span class="c">// Faixa típica: -4000 a +4000</span>
+<span class="c">// -4000: linha na extrema esquerda (sensor S0)</span>
+<span class="c">// +4000: linha na extrema direita  (sensor S8)</span></pre>
+        <p>Com esse erro calculado, o controlador PD gera uma correção <em>contínua e proporcional</em> que vai direto para os motores — sem zonas, sem saltos bruscos.</p>
 
         <!-- QUIZ -->
         <div class="quiz-section">
@@ -894,60 +1621,138 @@ lib_deps =
       </div>
 
       <div class="content">
-        <h2>Por que PID?</h2>
-        <p>O controle if/else gera zigue-zague porque responde de forma binária. O <strong>PID</strong> calcula uma correção <em>proporcional</em> ao erro — quanto maior o desvio, maior a correção. O resultado é um movimento suave e preciso.</p>
+        <h2>Da Resposta Binária ao Controle Contínuo</h2>
+        <p>O problema do if/else é que ele é <em>discreto</em>: existem apenas N respostas possíveis, e o robô salta abruptamente entre elas. O que precisamos é de um controle <em>contínuo</em>: uma resposta que varia suavemente em função do erro, sem saltos.</p>
+        <p>Imagine dirigir um carro: quando você está levemente saindo da faixa, faz uma pequena correção no volante. Quando está desviando muito, faz uma correção grande. Você não tem apenas dois estados ("virar máximo" ou "não virar") — a correção é proporcional ao quanto saiu da faixa. Isso é exatamente o que o controlador PID faz.</p>
 
-        <h2>As Três Parcelas</h2>
-        <p>PID significa <strong>Proporcional, Integral, Derivativo</strong>:</p>
-        <ul>
-          <li><strong>P — Proporcional:</strong> reage ao erro <em>atual</em>. Erro grande → correção grande.</li>
-          <li><strong>I — Integral:</strong> reage ao erro <em>acumulado</em>. Corrige desvios persistentes.</li>
-          <li><strong>D — Derivativo:</strong> reage à <em>velocidade de mudança</em> do erro. Amortece oscilações.</li>
-        </ul>
+        <h2>O Controlador PID — Três Perspectivas do Erro</h2>
+        <p>PID significa <strong>Proporcional, Integral, Derivativo</strong>. Cada letra representa uma perspectiva diferente de análise do mesmo sinal de erro:</p>
 
-        <h3>Por que usamos PD (sem o I)?</h3>
-        <p>Em seguidores de linha, a pista curva constantemente. O erro muda o tempo todo, então um acumulador de erro (I) ficaria sempre errado. Ficamos com <strong>PD</strong>: proporcional + derivativo.</p>
-
-        <h2>O Algoritmo em Código</h2>
+        <h3>P — Proporcional: "o erro agora é grande ou pequeno?"</h3>
+        <p>A parcela proporcional gera uma resposta diretamente proporcional ao erro atual. Se o erro dobra, a correção P dobra. É a parcela mais intuitiva e é a principal responsável pela correção.</p>
         <pre>
-<span class="ty">float</span> kP = <span class="num">0.8f</span>;     <span class="c">// ganho proporcional</span>
-<span class="ty">float</span> kD = <span class="num">5.0f</span>;     <span class="c">// ganho derivativo</span>
-<span class="ty">float</span> vel_base = <span class="num">180</span>; <span class="c">// velocidade quando erro = 0</span>
+<span class="ty">float</span> P = kP * erro;
+<span class="c">// erro = 2000 (robô muito à direita) → P = 1.2 * 2000 = 2400</span>
+<span class="c">// erro = 200  (levemente à direita)  → P = 1.2 * 200  = 240</span>
+<span class="c">// erro = 0    (centrado)             → P = 1.2 * 0    = 0</span></pre>
+        <p>Com apenas a parcela P: o robô segue a linha, mas oscila em torno dela. Ele ultrapassa o centro (overshoot), corrige, ultrapassa de volta — fica em zigue-zague. Para reduzir as oscilações, precisamos da parcela D.</p>
 
-<span class="ty">float</span> erro_anterior = <span class="num">0</span>;
+        <h3>I — Integral: "o erro persiste por muito tempo?"</h3>
+        <p>A parcela integral acumula o erro ao longo do tempo. Se o robô ficar consistentemente desviado por muitos ciclos, o acumulador cresce e força uma correção crescente até eliminar o desvio persistente. É útil para sistemas com atrito ou forças externas constantes.</p>
+        <pre>
+<span class="ty">static</span> <span class="ty">float</span> acumulador = <span class="num">0.0f</span>;
+acumulador += erro;           <span class="c">// cresce a cada ciclo</span>
+<span class="ty">float</span> I = kI * acumulador;</pre>
 
-<span class="ty">void</span> <span class="fn">loop</span>() {
-    <span class="ty">float</span> erro = <span class="fn">ler_posicao</span>() - <span class="num">4000.0f</span>;
+        <h3>Por que descartamos o I nos seguidores de linha?</h3>
+        <p>Em um seguidor de linha, a pista curva constantemente. O "set point" (posição ideal) é sempre a linha — mas o que "correto" significa muda a cada centímetro. O acumulador integral acabaria integrando erros de quando o robô estava em curvas (que são temporários e necessários) e geraria uma força espúria quando o robô retorna à reta. O efeito é exatamente o oposto do desejado: instabilidade. Ficamos com <strong>PD</strong>.</p>
 
-    <span class="ty">float</span> P = kP * erro;
-    <span class="ty">float</span> D = kD * (erro - erro_anterior);
+        <h3>D — Derivativo: "o erro está crescendo rápido ou devagar?"</h3>
+        <p>A parcela derivativa reage à <em>velocidade de mudança</em> do erro — a derivada em relação ao tempo. Se o erro está aumentando rapidamente (o robô está saindo da linha em alta velocidade), o termo D gera uma correção oposta imediatamente, antes que o erro fique enorme. É um "freio preditivo".</p>
+        <pre>
+<span class="c">// Derivada discreta: aproximação por diferenças finitas</span>
+<span class="ty">float</span> D = kD * (erro_atual - erro_anterior);
+<span class="c">// Se o erro cresceu muito desde o último ciclo → D é grande → freia a correção</span>
+<span class="c">// Se o erro está estável → D ≈ 0 → não interfere</span>
+<span class="c">// Se o erro está diminuindo (robô voltando ao centro) → D é negativo → ajuda</span></pre>
+        <p>Intuitivamente: a parcela P diz "corrija proporcionalmente ao erro", a parcela D diz "mas se você já está voltando para o centro, não corrija tanto". O D amortece as oscilações que o P gera.</p>
+
+        <h2>O Algoritmo PD Completo</h2>
+        <pre>
+<span class="c">// ── Parâmetros (ajustáveis via BLE no robô real) ──────────</span>
+<span class="ty">float</span> g_kP       = <span class="num">1.2f</span>;   <span class="c">// ganho proporcional</span>
+<span class="ty">float</span> g_kD       = <span class="num">8.0f</span>;   <span class="c">// ganho derivativo</span>
+<span class="ty">float</span> g_vel_base = <span class="num">180</span>;    <span class="c">// PWM quando erro = 0 (0-255)</span>
+
+<span class="c">// ── Estado persistente entre ciclos ──────────────────────</span>
+<span class="ty">static</span> <span class="ty">float</span> s_erro_anterior = <span class="num">0.0f</span>;
+
+<span class="c">// ── Função chamada a cada ciclo (~2ms) ────────────────────</span>
+<span class="ty">void</span> <span class="fn">executar_pid</span>() {
+    <span class="c">// 1. Lê e calcula o erro atual</span>
+    <span class="ty">float</span> posicao = <span class="fn">calcular_posicao</span>();
+    <span class="ty">float</span> erro    = posicao - <span class="num">4000.0f</span>;
+
+    <span class="c">// 2. Calcula as parcelas</span>
+    <span class="ty">float</span> P = g_kP * erro;
+    <span class="ty">float</span> D = g_kD * (erro - s_erro_anterior);
+
+    <span class="c">// 3. Correção total</span>
     <span class="ty">float</span> correcao = P + D;
 
-    <span class="fn">analogWrite</span>(MOTOR_ESQUERDO, vel_base + correcao);
-    <span class="fn">analogWrite</span>(MOTOR_DIREITO,  vel_base - correcao);
+    <span class="c">// 4. Aplica nos motores com saturação</span>
+    <span class="ty">int</span> esq = <span class="fn">constrain</span>((<span class="ty">int</span>)(g_vel_base - correcao), <span class="num">0</span>, <span class="num">255</span>);
+    <span class="ty">int</span> dir = <span class="fn">constrain</span>((<span class="ty">int</span>)(g_vel_base + correcao), <span class="num">0</span>, <span class="num">255</span>);
+    <span class="fn">analogWrite</span>(MOTOR_ESQ_PWM, esq);
+    <span class="fn">analogWrite</span>(MOTOR_DIR_PWM, dir);
 
-    erro_anterior = erro;
+    <span class="c">// 5. Salva erro para o próximo ciclo (cálculo do D)</span>
+    s_erro_anterior = erro;
 }</pre>
 
         <div class="callout">
-          <strong>Interpretação:</strong> <code>correcao</code> positiva → robô desviou para a direita → motor esquerdo acelera, direito freia → robô retorna ao centro. Se negativa, o inverso.
+          <strong>Por que subtrai do esquerdo e soma no direito?</strong> Erro positivo = robô desviou para a direita (linha está à esquerda do centro). Para corrigir, precisamos girar à esquerda: motor direito acelera, motor esquerdo desacelera. Logo: <code>motor_dir = base + correcao</code>, <code>motor_esq = base - correcao</code>. Se a correção for negativa (robô desviou para a esquerda), os sinais invertem automaticamente.
         </div>
 
-        <h2>Sintonizando kP e kD</h2>
-        <p>Não há uma fórmula mágica — a sintonização é empírica. Estratégia:</p>
+        <h2>Entendendo o Papel de Cada Parâmetro</h2>
+
+        <h3>Velocidade base (vel_base)</h3>
+        <p>É a velocidade de equilíbrio — o que o robô mantém quando erro = 0 (perfeitamente centrado). Quanto maior, mais rápido o robô anda nas retas, mas as curvas ficam mais difíceis de gerenciar. Comece com ~50-60% do máximo (120-160 de 255).</p>
+
+        <h3>kP — ganho proporcional</h3>
+        <p>Controla a agressividade da resposta ao erro. Um kP maior faz o robô reagir mais rápido a desvios, mas se for alto demais, ultrapassa o centro e gera oscilação. Um kP baixo demais e o robô não corrige rápido o suficiente nas curvas e sai da pista.</p>
+        <pre>
+<span class="c">// kP = 0.3: correção suave, pode perder curvas fechadas</span>
+<span class="c">// kP = 1.2: correção moderada — bom ponto de partida</span>
+<span class="c">// kP = 3.0: correção agressiva — provável oscilação sem kD alto</span></pre>
+
+        <h3>kD — ganho derivativo</h3>
+        <p>Amortece as oscilações causadas pelo P. Um kD adequado faz o robô "deslizar" suavemente de volta ao centro. Um kD muito alto causa "tremor" — o robô reage exageradamente a pequenas variações do sensor, incluindo ruído eletrônico.</p>
+        <pre>
+<span class="c">// kD = 0:   sem amortecimento — oscila com kP razoável</span>
+<span class="c">// kD = 8:   amortecimento moderado — bom ponto de partida</span>
+<span class="c">// kD = 40:  amortecimento excessivo — robô treme na reta</span></pre>
+
+        <h2>Metodologia de Sintonização (Tuning)</h2>
+        <p>Não existe fórmula mágica. A sintonização é iterativa e empírica — você testa, observa o comportamento, ajusta. Siga esta sequência:</p>
         <ol>
-          <li>Começa com kP pequeno (ex: 0.3), kD = 0. O robô segue a linha mas oscila.</li>
-          <li>Aumenta kD até as oscilações diminuírem.</li>
-          <li>Aumenta kP para o robô reagir mais rápido nas curvas.</li>
-          <li>Se oscilar muito → aumenta kD. Se reagir devagar → aumenta kP.</li>
+          <li><strong>Zera tudo:</strong> kP = 0.3, kD = 0, velocidade baixa (~100 PWM). O robô deve seguir a linha mas oscilar.</li>
+          <li><strong>Aumenta kP</strong> gradualmente até o robô seguir bem nas retas mas ainda oscilar nas curvas.</li>
+          <li><strong>Aumenta kD</strong> até as oscilações diminuírem sem causar tremor.</li>
+          <li><strong>Aumenta velocidade base</strong> e repita: com velocidade maior, o robô sente a linha com menos tempo por ciclo, então geralmente precisa de kP e kD maiores.</li>
+          <li><strong>Teste curvas fechadas</strong> especificamente — elas são o caso extremo.</li>
         </ol>
 
-        <h3>Sinais de kP/kD errados</h3>
-        <ul>
-          <li><strong>kP muito alto:</strong> robô oscila em zigue-zague constante</li>
-          <li><strong>kD muito alto:</strong> robô treme, reage a qualquer variação mínima</li>
-          <li><strong>kP muito baixo:</strong> robô não corrige rápido o suficiente nas curvas</li>
-        </ul>
+        <h3>Diagnóstico por comportamento</h3>
+        <pre>
+<span class="c">// SINTOMA → CAUSA → AÇÃO</span>
+<span class="c">// ──────────────────────────────────────────────────────────</span>
+<span class="c">// Oscila em zigue-zague na reta    → kP alto demais  → reduz kP ou aumenta kD</span>
+<span class="c">// Não segue curvas fechadas        → kP baixo demais → aumenta kP</span>
+<span class="c">// Treme/vibra na reta              → kD alto demais  → reduz kD</span>
+<span class="c">// Lento para corrigir desvios      → kP baixo demais → aumenta kP</span>
+<span class="c">// Sai voando em curvas (muito rápido) → vel_base alta → reduz vel_base</span></pre>
+
+        <h3>Exemplo de valores funcionais na Bia</h3>
+        <pre>
+<span class="c">// Bia em pista de competição (valores aproximados)</span>
+g_kP       = <span class="num">1.5f</span>;   <span class="c">// proporcional</span>
+g_kD       = <span class="num">10.0f</span>;  <span class="c">// derivativo</span>
+g_vel_base = <span class="num">190</span>;    <span class="c">// ~75% do máximo</span>
+
+<span class="c">// Via BLE: PP,1.500 define kP, PD,10.000 define kD, PV,190 define velocidade</span></pre>
+
+        <h2>Visualizando o PD com Telemetria</h2>
+        <p>O app Phoenix tem uma tela de telemetria que plota o erro em tempo real via BLE a 10Hz. Use-a para diagnosticar o comportamento: o sinal deve oscilar suavemente em torno de zero nas retas e ter picos moderados nas curvas. Oscilações de alta frequência indicam kD excessivo; desvio crescente sem retornar indica kP insuficiente.</p>
+        <pre>
+<span class="c">// Exemplo de código de telemetria no firmware:</span>
+<span class="kw">static</span> <span class="ty">uint32_t</span> ultimo_telem = <span class="num">0</span>;
+<span class="kw">if</span> (<span class="fn">millis</span>() - ultimo_telem >= <span class="num">100</span>) {  <span class="c">// 10Hz</span>
+    <span class="ty">char</span> buf[<span class="num">64</span>];
+    <span class="fn">snprintf</span>(buf, <span class="kw">sizeof</span>(buf), <span class="str">"T,%.1f,%.1f\r"</span>, erro, correcao);
+    <span class="fn">send_bluetooth_message</span>(buf);
+    ultimo_telem = <span class="fn">millis</span>();
+}</pre>
 
         <!-- QUIZ -->
         <div class="quiz-section">
